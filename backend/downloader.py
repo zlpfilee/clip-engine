@@ -116,7 +116,7 @@ def _get_kick_m3u8_url(url: str) -> dict:
                         thumbnail = data.get("thumbnail") or data.get("poster")
                     
                     if source:
-                        print(f"[Kick Direct] ✅ m3u8 bulundu: {source[:80]}...")
+                        print(f"[Kick Direct] [OK] m3u8 bulundu: {source[:80]}...")
                         return {
                             "m3u8_url": source,
                             "title": title,
@@ -124,10 +124,10 @@ def _get_kick_m3u8_url(url: str) -> dict:
                             "thumbnail": thumbnail,
                         }
                     else:
-                        print(f"[Kick Direct] ⚠️ API yanıt verdi ama source yok: {json.dumps(data)[:200]}")
+                        print(f"[Kick Direct] [WARN] API yanit verdi ama source yok: {json.dumps(data)[:200]}")
                         
             except urllib.error.HTTPError as e:
-                print(f"[Kick Direct] HTTP {e.code} hatası: {api_url}")
+                print(f"[Kick Direct] HTTP {e.code} hatasi: {api_url}")
                 continue
             except Exception as e:
                 print(f"[Kick Direct] Hata: {e}")
@@ -143,7 +143,7 @@ def _get_kick_m3u8_url(url: str) -> dict:
         
         for api_url in api_urls:
             try:
-                print(f"[Kick Direct] Kanal videoları deneniyor: {api_url}")
+                print(f"[Kick Direct] Kanal videolari deneniyor: {api_url}")
                 req = urllib.request.Request(api_url, headers=headers)
                 with urllib.request.urlopen(req, timeout=15) as resp:
                     data = json.loads(resp.read().decode("utf-8"))
@@ -163,7 +163,7 @@ def _get_kick_m3u8_url(url: str) -> dict:
                             title = ls.get("session_title") or title
                         
                         if source:
-                            print(f"[Kick Direct] ✅ Kanal VOD m3u8 bulundu: {source[:80]}...")
+                            print(f"[Kick Direct] [OK] Kanal VOD m3u8 bulundu: {source[:80]}...")
                             return {
                                 "m3u8_url": source,
                                 "title": title,
@@ -171,7 +171,7 @@ def _get_kick_m3u8_url(url: str) -> dict:
                                 "thumbnail": video.get("thumbnail"),
                             }
                     
-                    print(f"[Kick Direct] ⚠️ Kanal API yanıtı: {json.dumps(data)[:300]}")
+                    print(f"[Kick Direct] [WARN] Kanal API yaniti: {json.dumps(data)[:300]}")
                     
             except urllib.error.HTTPError as e:
                 print(f"[Kick Direct] HTTP {e.code}: {api_url}")
@@ -479,14 +479,14 @@ def download_media_generator(url: str, quality: str, output_dir: str, custom_nam
     
     # Kick URL'si mi kontrol et
     if _is_kick_url(url):
-        print(f"[Downloader] 🎯 Kick URL algılandı, direkt API yöntemi deneniyor...")
+        print(f"[Downloader] [INFO] Kick URL algilandi, direkt API yontemi deneniyor...")
         
         for update in _kick_download_generator(url, quality, output_dir, custom_name, format):
             # "fallback" status'u gelirse yt-dlp'ye geç
             if update.get("status") == "fallback":
-                print(f"[Downloader] ⚠️ Kick direkt indirme başarısız: {update.get('message')}")
-                print(f"[Downloader] 🔄 yt-dlp fallback'e geçiliyor...")
-                yield {"status": "downloading", "percent": 0, "message": f"⚠️ {update['message']}"}
+                print(f"[Downloader] [WARN] Kick direkt indirme basarisiz: {update.get('message')}")
+                print(f"[Downloader] [INFO] yt-dlp fallback'e geciliyor...")
+                yield {"status": "downloading", "percent": 0, "message": f"[WARN] {update['message']}"}
                 
                 # yt-dlp ile dene
                 for fallback_update in _ytdlp_download_generator(url, quality, output_dir, custom_name, format):
@@ -496,6 +496,6 @@ def download_media_generator(url: str, quality: str, output_dir: str, custom_nam
             yield update
     else:
         # Kick değil, direkt yt-dlp kullan
-        print(f"[Downloader] 📺 Kick dışı URL, yt-dlp kullanılıyor...")
+        print(f"[Downloader] [INFO] Kick disi URL, yt-dlp kullaniliyor...")
         for update in _ytdlp_download_generator(url, quality, output_dir, custom_name, format):
             yield update
