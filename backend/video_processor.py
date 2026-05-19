@@ -192,7 +192,8 @@ def crop_to_vertical(
     input_path: str, 
     output_path: str, 
     mode: str = "blur",
-    split_settings: dict = None
+    split_settings: dict = None,
+    force_cpu: bool = False
 ) -> str:
     """16:9 videoyu 9:16'ya çevir
     
@@ -279,14 +280,15 @@ def crop_to_vertical(
             f"pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black[out]"
         )
     
-    slog(f"[crop_to_vertical] Mod: {mode}, Encoder: {' '.join(get_video_codec_args())}")
+    encoder_args = ["-c:v", "libx264", "-preset", "veryfast"] if force_cpu else get_video_codec_args()
+    slog(f"[crop_to_vertical] Mod: {mode}, force_cpu={force_cpu}, Encoder: {' '.join(encoder_args)}")
     
     cmd = [
         "ffmpeg", "-y",
         "-i", input_path,
         "-filter_complex", filter_complex,
         "-map", "[out]", "-map", "0:a?",
-        *get_video_codec_args(),
+        *encoder_args,
         "-b:v", "8M",
         "-c:a", "aac",
         "-b:a", "192k",

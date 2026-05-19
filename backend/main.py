@@ -717,7 +717,7 @@ async def preview_trim_camera(req: PreviewCameraTrimRequest):
             "ffmpeg", "-y",
             "-i", trimmed_path,
             "-vf", f"crop={crop_w}:{crop_h}:{crop_x}:{crop_y},scale=1080:1920",
-            *get_video_codec_args(),
+            "-c:v", "libx264", "-preset", "veryfast",
             "-b:v", "5M",
             "-c:a", "aac", "-b:a", "192k",
             out_path
@@ -745,7 +745,9 @@ async def preview_layout(req: PreviewLayoutRequest):
     try:
         from video_processor import crop_to_vertical, slog
         slog(f"[preview/layout] trimmed={req.trimmed_filename} crop_mode={req.crop_mode}")
-        crop_to_vertical(trimmed_path, out_path, mode=req.crop_mode, split_settings=req.split_settings.dict() if req.split_settings else None)
+        crop_to_vertical(trimmed_path, out_path, mode=req.crop_mode, 
+                         split_settings=req.split_settings.dict() if req.split_settings else None,
+                         force_cpu=True)
         slog(f"[preview/layout] Basarili: {out_name}")
         return {"filename": out_name, "url": f"/media/preview_temp/{out_name}"}
     except Exception as e:

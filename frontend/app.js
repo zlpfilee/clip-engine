@@ -874,7 +874,7 @@ document.getElementById('btnAddClipToList')?.addEventListener('click', async () 
     
     const startTime = document.getElementById('startTime').value;
     const endTime = document.getElementById('endTime').value;
-    const clipName = document.getElementById('activeClipName').value || `Klip ${state.nextClipId}`;
+    const clipName = document.getElementById('activeClipName').value.trim() || `Klip ${state.nextClipId}`;
     
     if (!startTime || !endTime) {
         showToast('Başlangıç ve bitiş zamanını gir!', 'error');
