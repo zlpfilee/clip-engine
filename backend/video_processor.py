@@ -34,30 +34,52 @@ MEDIA_DIR = BASE_DIR / "media"
 
 _best_encoder = None
 
+# Server-side debug log
+_SERVER_LOG = Path(__file__).resolve().parent.parent.parent / "ClipEngine_server.log"
+
+def slog(msg):
+    """Sunucu debug log dosyasina yaz"""
+    try:
+        import time as _time
+        timestamp = _time.strftime("%Y-%m-%d %H:%M:%S")
+        line = f"[{timestamp}] {msg}\n"
+        with open(_SERVER_LOG, "a", encoding="utf-8", errors="replace") as f:
+            f.write(line)
+        print(line.strip())
+    except Exception:
+        pass
+
+
 def get_video_codec_args() -> list:
-    """Sisteme en uygun donanım hızlandırmalı video encoder'ı bulur."""
+    """Sisteme en uygun donanim hizlandirmali video encoder'i bulur."""
     global _best_encoder
     if _best_encoder is not None:
         return _best_encoder
         
     import tempfile
     
-    encoders = ["h264_nvenc", "h264_amf", "h264_qsv", "libx264"]
+    encoders = ["h264_nvenc", "h264_amf", "h264_qsv"]
     
     with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp:
         tmp_path = tmp.name
         
-    _best_encoder = ["-c:v", "libx264", "-preset", "veryfast"] # Default fallback
+    _best_encoder = ["-c:v", "libx264", "-preset", "veryfast"]  # Default fallback
     
-    for enc in encoders[:-1]:
+    for enc in encoders:
         cmd = ["ffmpeg", "-y", "-f", "lavfi", "-i", "color=c=black:s=256x256:d=0.1", "-c:v", enc, tmp_path]
         try:
-            res = subprocess.run(cmd, capture_output=True, timeout=5)
+            slog(f"Encoder test: {enc}")
+            res = subprocess.run(cmd, capture_output=True, timeout=5, stdin=subprocess.DEVNULL)
             if res.returncode == 0:
                 _best_encoder = ["-c:v", enc]
+                slog(f"Encoder secildi: {enc}")
                 break
-        except Exception:
-            pass
+            else:
+                slog(f"Encoder basarisiz: {enc} (code={res.returncode})")
+        except subprocess.TimeoutExpired:
+            slog(f"Encoder timeout: {enc}")
+        except Exception as e:
+            slog(f"Encoder hata: {enc} -> {e}")
             
     try:
         if os.path.exists(tmp_path):
@@ -65,8 +87,45 @@ def get_video_codec_args() -> list:
     except Exception:
         pass
         
-    print(f"[DEBUG] Video Encoder: {' '.join(_best_encoder)}")
+    slog(f"Final encoder: {' '.join(_best_encoder)}")
     return _best_encoder
+
+
+def _run_ffmpeg(cmd, timeout=120, label="FFmpeg"):
+    """FFmpeg komutunu calistir. Timeout olursa libx264 ile tekrar dene."""
+    global _best_encoder
+    
+    slog(f"[{label}] Komut: {' '.join(cmd)}")
+    
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, 
+                                stdin=subprocess.DEVNULL, timeout=timeout)
+        if result.returncode != 0:
+            slog(f"[{label}] HATA (code={result.returncode}): {result.stderr[:300]}")
+            raise RuntimeError(f"FFmpeg hata: {result.stderr[:500]}")
+        slog(f"[{label}] Basarili.")
+        return result
+    except subprocess.TimeoutExpired:
+        slog(f"[{label}] TIMEOUT! ({timeout}s) Encoder degistiriliyor -> libx264")
+        # Encoder'i libx264'e degistir ve tekrar dene
+        _best_encoder = ["-c:v", "libx264", "-preset", "veryfast"]
+        new_cmd = []
+        i = 0
+        while i < len(cmd):
+            if cmd[i] == "-c:v":
+                new_cmd.extend(["-c:v", "libx264", "-preset", "veryfast"])
+                i += 2  # skip encoder name
+            else:
+                new_cmd.append(cmd[i])
+                i += 1
+        slog(f"[{label}] Yeni komut: {' '.join(new_cmd)}")
+        result = subprocess.run(new_cmd, capture_output=True, text=True,
+                                stdin=subprocess.DEVNULL, timeout=timeout * 3)
+        if result.returncode != 0:
+            slog(f"[{label}] libx264 de basarisiz: {result.stderr[:300]}")
+            raise RuntimeError(f"FFmpeg hata: {result.stderr[:500]}")
+        slog(f"[{label}] libx264 ile basarili.")
+        return result
 
 
 def get_video_info(video_path: str) -> dict:
@@ -113,6 +172,8 @@ def cut_clip(
     """
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
+    slog(f"[cut_clip] Kaynak: {source_path}, Baslangic: {start_time}, Bitis: {end_time}")
+    
     cmd = [
         "ffmpeg", "-y",
         "-ss", str(start_time),
@@ -122,9 +183,7 @@ def cut_clip(
         output_path
     ]
     
-    result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
-    if result.returncode != 0:
-        raise RuntimeError(f"FFmpeg hata: {result.stderr}")
+    _run_ffmpeg(cmd, timeout=60, label="cut_clip")
     
     return output_path
 
@@ -220,6 +279,8 @@ def crop_to_vertical(
             f"pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black[out]"
         )
     
+    slog(f"[crop_to_vertical] Mod: {mode}, Encoder: {' '.join(get_video_codec_args())}")
+    
     cmd = [
         "ffmpeg", "-y",
         "-i", input_path,
@@ -233,9 +294,7 @@ def crop_to_vertical(
         output_path
     ]
     
-    result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
-    if result.returncode != 0:
-        raise RuntimeError(f"FFmpeg hata: {result.stderr}")
+    _run_ffmpeg(cmd, timeout=180, label="crop_to_vertical")
     
     return output_path
 
@@ -285,9 +344,7 @@ def add_watermark(
         output_path
     ]
     
-    result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
-    if result.returncode != 0:
-        raise RuntimeError(f"FFmpeg hata: {result.stderr}")
+    _run_ffmpeg(cmd, timeout=180, label="add_watermark")
     
     return output_path
 
@@ -340,9 +397,7 @@ def add_hook_text(
         output_path
     ]
     
-    result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
-    if result.returncode != 0:
-        raise RuntimeError(f"FFmpeg hata: {result.stderr}")
+    _run_ffmpeg(cmd, timeout=120, label="add_hook_text")
     
     return output_path
 
@@ -457,9 +512,7 @@ def burn_subtitles(
         output_path
     ]
     
-    result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
-    if result.returncode != 0:
-        raise RuntimeError(f"FFmpeg hata: {result.stderr}")
+    _run_ffmpeg(cmd, timeout=180, label="burn_subtitles")
     
     return output_path
 
@@ -756,9 +809,11 @@ def apply_advanced_layers(input_path: str, output_path: str, text_layers: list, 
     
     print(f"[DEBUG] FFmpeg layer cmd: {' '.join(cmd)}")
     
-    result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
+    slog(f"[layers] {len(text_layers or [])} yazi, {len(image_layers or [])} gorsel katmani")
+    
+    result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=180)
     if result.returncode != 0:
-        print(f"Layer uyarı: {result.stderr}")
+        slog(f"[layers] Hata: {result.stderr[:300]}")
         import shutil
         shutil.copy2(input_path, output_path)
         
