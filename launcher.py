@@ -167,6 +167,7 @@ class ClipEngineLauncher:
         
         total = int(response.headers.get("Content-Length", 0))
         downloaded = 0
+        start_time = time.time()
         
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         with open(dest, "wb") as f:
@@ -176,11 +177,18 @@ class ClipEngineLauncher:
                     break
                 f.write(chunk)
                 downloaded += len(chunk)
+                
                 if total > 0:
+                    elapsed = time.time() - start_time
+                    speed = (downloaded / 1024 / 1024) / elapsed if elapsed > 0 else 0
                     pct = int(downloaded / total * 100)
                     mb_done = downloaded / 1024 / 1024
                     mb_total = total / 1024 / 1024
-                    self._set_status(f"{label} indiriliyor...", f"{mb_done:.1f} / {mb_total:.1f} MB ({pct}%)")
+                    
+                    self._set_status(
+                        f"{label} indiriliyor... ({pct}%)", 
+                        f"{mb_done:.1f} MB / {mb_total:.1f} MB • Hız: {speed:.1f} MB/s"
+                    )
     
     def _github_api(self, endpoint):
         """GitHub API çağrısı yap"""
@@ -219,6 +227,7 @@ class ClipEngineLauncher:
         
         total = int(response.headers.get("Content-Length", 0))
         downloaded = 0
+        start_time = time.time()
         
         with open(dest, "wb") as f:
             while True:
@@ -227,10 +236,23 @@ class ClipEngineLauncher:
                     break
                 f.write(chunk)
                 downloaded += len(chunk)
+                
                 if total > 0:
+                    elapsed = time.time() - start_time
+                    speed = (downloaded / 1024 / 1024) / elapsed if elapsed > 0 else 0
                     pct = int(downloaded / total * 100)
-                    mb = downloaded / 1024 / 1024
-                    self._set_status("ClipEngine indiriliyor...", f"{mb:.1f} MB ({pct}%)")
+                    mb_done = downloaded / 1024 / 1024
+                    mb_total = total / 1024 / 1024
+                    
+                    self._set_status(
+                        f"ClipEngine indiriliyor... ({pct}%)", 
+                        f"{mb_done:.1f} MB / {mb_total:.1f} MB • Hız: {speed:.1f} MB/s"
+                    )
+                else:
+                    elapsed = time.time() - start_time
+                    speed = (downloaded / 1024 / 1024) / elapsed if elapsed > 0 else 0
+                    mb_done = downloaded / 1024 / 1024
+                    self._set_status("ClipEngine indiriliyor...", f"{mb_done:.1f} MB indirildi • Hız: {speed:.1f} MB/s")
     
     def _setup_python(self):
         """Portable Python kur"""
@@ -453,19 +475,31 @@ class ClipEngineLauncher:
         subprocess.run([python_exe, "-m", "pip", "install", "--upgrade", "pip", "setuptools", "wheel", "--quiet"], capture_output=True)
         
         # requirements install
-        result = subprocess.run(
-            [python_exe, "-m", "pip", "install", "-r", str(req_file), "--quiet"],
-            capture_output=True, text=True
+        process = subprocess.Popen(
+            [python_exe, "-m", "pip", "install", "-r", str(req_file)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
         )
         
-        if result.returncode != 0:
-            # Whisper/torch hatası olabilir, devam et
-            self._set_status("Bazı paketler yüklenemedi, devam ediliyor...", result.stderr[:200] if result.stderr else "")
+        for line in iter(process.stdout.readline, ''):
+            line = line.strip()
+            if line:
+                if "Downloading" in line or "Installing collected" in line or "Processing" in line:
+                    short_line = line[:70] + "..." if len(line) > 70 else line
+                    self._set_status("Yapay zeka ve sunucu paketleri kuruluyor...", short_line)
+        
+        process.wait()
+        
+        if process.returncode != 0:
+            self._set_status("Bazı paketler yüklenirken uyarı verdi, devam ediliyor...", "")
         
         # Hash kaydet
         hash_file.write_text(current_hash)
         
-        self._set_status("Paketler hazır ✓")
+        self._set_status("Paketler hazır ✓", "Tüm paketler kuruldu.")
         self._set_step("Paketler", "done")
         self._set_progress(85)
     
