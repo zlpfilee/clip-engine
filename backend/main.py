@@ -28,7 +28,8 @@ from typing import Optional
 from video_processor import (
     get_video_info, cut_clip, crop_to_vertical,
     add_watermark, add_hook_text, generate_subtitles,
-    burn_subtitles, full_pipeline, get_video_codec_args
+    burn_subtitles, full_pipeline, get_video_codec_args,
+    _run_ffmpeg, slog
 )
 
 
@@ -479,6 +480,7 @@ def _run_pipeline_with_progress(job_id: str, req_dict: dict, config: dict):
             
             if preview_file_path.exists():
                 shutil.copy2(str(preview_file_path), crop_output)
+                slog(f"[process] Preview dosyasi kopyalandi: {preview_layout_filename}")
             else:
                 raise Exception(f"Önizleme dosyası bulunamadı: {preview_layout_filename}")
                 
@@ -487,12 +489,15 @@ def _run_pipeline_with_progress(job_id: str, req_dict: dict, config: dict):
             # Eski usul (Step 1 ve 2)
             current_step += 1
             _update_job(job_id, step="Video kesiliyor...", progress=int(current_step / total_steps * 100))
+            slog(f"[process] Adim 1: Video kesiliyor...")
             cut_output = str(clips_dir / "01_cut.mp4")
             cut_clip(base_file, cut_output, req_dict["start_time"], req_dict["end_time"])
             base_file = cut_output
+            slog(f"[process] Adim 1: Kesme OK")
 
             current_step += 1
             _update_job(job_id, step="Dikey formata dönüştürülüyor...", progress=int(current_step / total_steps * 100))
+            slog(f"[process] Adim 2: Dikey format...")
             crop_output = str(clips_dir / "02_vertical.mp4")
             crop_to_vertical(
                 base_file, 
@@ -501,14 +506,17 @@ def _run_pipeline_with_progress(job_id: str, req_dict: dict, config: dict):
                 split_settings=req_dict.get("split_settings")
             )
             base_file = crop_output
+            slog(f"[process] Adim 2: Dikey format OK")
 
         # Step 3: Whisper (if needed)
         base_srt_path = None
         if has_subs:
             current_step += 1
             _update_job(job_id, step="Altyazı oluşturuluyor (Whisper AI)...", progress=int(current_step / total_steps * 100))
+            slog(f"[process] Adim 3: Whisper altyazi...")
             base_srt_path = str(clips_dir / "subtitles_base.srt")
             generate_subtitles(base_file, base_srt_path, model=config.get("whisper_model", "base"), language="en")
+            slog(f"[process] Adim 3: Whisper OK")
 
         results = []
         steps_log = [{"step": "cut"}, {"step": "crop"}]
@@ -519,20 +527,24 @@ def _run_pipeline_with_progress(job_id: str, req_dict: dict, config: dict):
         for lang in subtitle_langs:
             lang_file = base_file
             lang_srt = None
+            slog(f"[process] Dil isleniyor: {lang}")
 
             # Hook text
             if has_hook:
                 current_step += 1
                 _update_job(job_id, step=f"Hook yazısı ekleniyor ({lang})...", progress=int(current_step / total_steps * 100))
+                slog(f"[process] Hook text ekleniyor ({lang})...")
                 translated_hook = translate_text(req_dict["hook_text"], lang) if req_dict["hook_text"] else None
                 hook_output = str(clips_dir / f"03_hook_{lang}.mp4")
                 add_hook_text(lang_file, hook_output, translated_hook)
                 lang_file = hook_output
+                slog(f"[process] Hook text OK ({lang})")
 
             # Subtitles
             if has_subs and base_srt_path:
                 current_step += 1
                 _update_job(job_id, step=f"Altyazı yakılıyor ({lang})...", progress=int(current_step / total_steps * 100))
+                slog(f"[process] Altyazi yakilliyor ({lang})...")
                 if lang == "en":
                     lang_srt = base_srt_path
                 else:
@@ -540,22 +552,27 @@ def _run_pipeline_with_progress(job_id: str, req_dict: dict, config: dict):
                 sub_output = str(clips_dir / f"04_subtitled_{lang}.mp4")
                 burn_subtitles(lang_file, sub_output, lang_srt, margin_v=req_dict.get("margin_v", 80))
                 lang_file = sub_output
+                slog(f"[process] Altyazi OK ({lang})")
 
             # Layers
             if has_layers:
                 current_step += 1
                 _update_job(job_id, step=f"Katmanlar ekleniyor ({lang})...", progress=int(current_step / total_steps * 100))
+                slog(f"[process] Katmanlar ekleniyor ({lang})...")
                 overlay_output = str(clips_dir / f"04b_layers_{lang}.mp4")
                 apply_advanced_layers(lang_file, overlay_output, text_layers, image_layers)
                 lang_file = overlay_output
+                slog(f"[process] Katmanlar OK ({lang})")
 
             # Watermark
             if has_wm:
                 current_step += 1
                 _update_job(job_id, step=f"Watermark ekleniyor ({lang})...", progress=int(current_step / total_steps * 100))
+                slog(f"[process] Watermark ekleniyor ({lang})...")
                 wm_output = str(clips_dir / f"05_watermarked_{lang}.mp4")
                 add_watermark(lang_file, wm_output, watermark_path)
                 lang_file = wm_output
+                slog(f"[process] Watermark OK ({lang})")
 
             # Final copy
             current_step += 1
@@ -572,6 +589,7 @@ def _run_pipeline_with_progress(job_id: str, req_dict: dict, config: dict):
                 "final_output": final_output,
                 "srt_path": lang_srt,
             })
+            slog(f"[process] Dil tamamlandi: {lang}")
 
         # Save to DB
         db = load_db()
@@ -603,6 +621,7 @@ def _run_pipeline_with_progress(job_id: str, req_dict: dict, config: dict):
 
         save_db(db)
 
+        slog(f"[process] TAMAMLANDI! {len(saved_clips)} klip olusturuldu.")
         _update_job(job_id,
             status="done",
             progress=100,
@@ -616,7 +635,8 @@ def _run_pipeline_with_progress(job_id: str, req_dict: dict, config: dict):
 
     except Exception as e:
         import traceback
-        traceback.print_exc()
+        err = traceback.format_exc()
+        slog(f"[process] KRITIK HATA: {err}")
         _update_job(job_id, status="error", error=str(e), step=f"Hata: {str(e)}")
 
 
