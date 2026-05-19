@@ -32,6 +32,43 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_DIR = BASE_DIR / "media"
 
 
+_best_encoder = None
+
+def get_video_codec_args() -> list:
+    """Sisteme en uygun donanım hızlandırmalı video encoder'ı bulur."""
+    global _best_encoder
+    if _best_encoder is not None:
+        return _best_encoder
+        
+    import tempfile
+    
+    encoders = ["h264_nvenc", "h264_amf", "h264_qsv", "libx264"]
+    
+    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp:
+        tmp_path = tmp.name
+        
+    _best_encoder = ["-c:v", "libx264", "-preset", "veryfast"] # Default fallback
+    
+    for enc in encoders[:-1]:
+        cmd = ["ffmpeg", "-y", "-f", "lavfi", "-i", "color=c=black:s=256x256:d=0.1", "-c:v", enc, tmp_path]
+        try:
+            res = subprocess.run(cmd, capture_output=True, timeout=5)
+            if res.returncode == 0:
+                _best_encoder = ["-c:v", enc]
+                break
+        except Exception:
+            pass
+            
+    try:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+    except Exception:
+        pass
+        
+    print(f"[DEBUG] Video Encoder: {' '.join(_best_encoder)}")
+    return _best_encoder
+
+
 def get_video_info(video_path: str) -> dict:
     """Video hakkında bilgi al (süre, çözünürlük, fps)"""
     cmd = [
@@ -81,7 +118,7 @@ def cut_clip(
         "-ss", str(start_time),
         "-to", str(end_time),
         "-i", source_path,
-        "-c:v", "h264_amf",
+        *get_video_codec_args(),
         "-b:v", "5M",
         "-c:a", "aac",
         "-b:a", "192k",
@@ -191,7 +228,7 @@ def crop_to_vertical(
         "-i", input_path,
         "-filter_complex", filter_complex,
         "-map", "[out]", "-map", "0:a?",
-        "-c:v", "h264_amf",
+        *get_video_codec_args(),
         "-b:v", "8M",
         "-c:a", "aac",
         "-b:a", "192k",
@@ -245,7 +282,7 @@ def add_watermark(
         "-i", watermark_path,
         "-filter_complex", filter_complex,
         "-map", "[out]", "-map", "0:a?",
-        "-c:v", "h264_amf",
+        *get_video_codec_args(),
         "-b:v", "8M",
         "-c:a", "aac",
         output_path
@@ -300,7 +337,7 @@ def add_hook_text(
         "ffmpeg", "-y",
         "-i", input_path,
         "-vf", drawtext,
-        "-c:v", "h264_amf",
+        *get_video_codec_args(),
         "-b:v", "8M",
         "-c:a", "copy",
         output_path
@@ -417,7 +454,7 @@ def burn_subtitles(
         "ffmpeg", "-y",
         "-i", input_path,
         "-vf", subtitle_filter,
-        "-c:v", "h264_amf",
+        *get_video_codec_args(),
         "-b:v", "8M",
         "-c:a", "copy",
         output_path
@@ -715,7 +752,7 @@ def apply_advanced_layers(input_path: str, output_path: str, text_layers: list, 
         "-filter_complex", filter_complex,
         "-map", last_video_pad,
         "-map", "0:a",
-        "-c:v", "h264_amf", "-b:v", "8M",
+        *get_video_codec_args(), "-b:v", "8M",
         "-c:a", "aac", "-b:a", "192k",
         output_path
     ])

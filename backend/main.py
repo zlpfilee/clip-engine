@@ -28,7 +28,7 @@ from typing import Optional
 from video_processor import (
     get_video_info, cut_clip, crop_to_vertical,
     add_watermark, add_hook_text, generate_subtitles,
-    burn_subtitles, full_pipeline
+    burn_subtitles, full_pipeline, get_video_codec_args
 )
 
 
@@ -696,7 +696,7 @@ async def preview_trim_camera(req: PreviewCameraTrimRequest):
             "ffmpeg", "-y",
             "-i", trimmed_path,
             "-vf", f"crop={crop_w}:{crop_h}:{crop_x}:{crop_y},scale=1080:1920",
-            "-c:v", "h264_amf",
+            *get_video_codec_args(),
             "-b:v", "5M",
             "-c:a", "aac", "-b:a", "192k",
             out_path
