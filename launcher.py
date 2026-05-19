@@ -31,6 +31,7 @@ PYTHON_DIR = INSTALL_DIR / "_python"
 FFMPEG_DIR = INSTALL_DIR / "_ffmpeg"
 APP_DIR = INSTALL_DIR / "app"
 CONFIG_FILE = INSTALL_DIR / "launcher_config.json"
+LOG_FILE = INSTALL_DIR / "ClipEngine_debug.log"
 
 PYTHON_VERSION = "3.11.9"
 PYTHON_URL = f"https://www.python.org/ftp/python/{PYTHON_VERSION}/python-{PYTHON_VERSION}-embed-amd64.zip"
@@ -40,6 +41,19 @@ FFMPEG_URL = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
 ssl_ctx = ssl.create_default_context()
 ssl_ctx.check_hostname = False
 ssl_ctx.verify_mode = ssl.CERT_NONE
+
+
+def log(msg):
+    """Debug log dosyasina yaz"""
+    try:
+        os.makedirs(INSTALL_DIR, exist_ok=True)
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        line = f"[{timestamp}] {msg}\n"
+        with open(LOG_FILE, "a", encoding="utf-8", errors="replace") as f:
+            f.write(line)
+        print(line.strip())
+    except Exception:
+        pass
 
 
 def load_config():
@@ -353,7 +367,7 @@ class ClipEngineLauncher:
         self._set_progress(45)
     
     def _setup_code(self):
-        """GitHub'dan kodu indir/güncelle"""
+        """GitHub'dan kodu indir/guncelle"""
         self._set_step("ClipEngine Kodu", "active")
         self._set_progress(50)
         
@@ -361,31 +375,39 @@ class ClipEngineLauncher:
         version_file = APP_DIR / "version.txt"
         if version_file.exists():
             local_version = version_file.read_text().strip()
+        log(f"Lokal versiyon: {local_version}")
         
         # Uzak versiyon kontrol
         self._set_status("Güncelleme kontrol ediliyor...")
         remote_version = self._github_api(f"contents/version.txt?ref={GITHUB_BRANCH}")
+        log(f"Uzak versiyon: {remote_version}")
         
         need_update = False
         if not (APP_DIR / "backend" / "main.py").exists():
             need_update = True
+            log("main.py bulunamadi -> ilk kurulum")
             self._set_status("İlk kurulum - ClipEngine indiriliyor...")
         elif remote_version and remote_version != local_version:
             need_update = True
+            log(f"Versiyon farki: {local_version} -> {remote_version}")
             self._set_status(f"Güncelleme bulundu: v{local_version} → v{remote_version}")
         else:
+            log("Versiyon guncel, guncelleme gerekmiyor.")
             self._set_status("ClipEngine güncel ✓")
         
         if need_update:
             zip_path = str(INSTALL_DIR / "_code_temp.zip")
             
             try:
+                log("GitHub ZIP indiriliyor...")
                 self._github_download_zip(zip_path)
+                log(f"ZIP indirildi: {os.path.getsize(zip_path)} bytes")
             except Exception as e:
+                log(f"ZIP indirme hatasi: {e}")
                 if (APP_DIR / "backend" / "main.py").exists():
                     self._set_status("Güncelleme indirilemedi, mevcut sürüm kullanılıyor.")
                     self._set_step("ClipEngine Kodu", "done")
-                    return True  # still needs install check
+                    return True
                 else:
                     raise RuntimeError(f"Kod indirilemedi: {e}")
             
@@ -398,6 +420,7 @@ class ClipEngineLauncher:
                     dst = INSTALL_DIR / f"_backup_{folder}"
                     if dst.exists():
                         shutil.rmtree(dst)
+                    log(f"Yedekleniyor: {folder}")
                     shutil.move(str(src), str(dst))
                     backups[folder] = dst
             
@@ -408,9 +431,35 @@ class ClipEngineLauncher:
             
             # Eski kodu sil
             if APP_DIR.exists():
-                shutil.rmtree(APP_DIR)
+                log("Eski kod siliniyor...")
+                try:
+                    shutil.rmtree(APP_DIR)
+                    log("Eski kod silindi.")
+                except Exception as e:
+                    log(f"Eski kod silinirken hata: {e}")
+                    # Dosya dosya silmeyi dene
+                    import stat
+                    for root, dirs, files in os.walk(APP_DIR, topdown=False):
+                        for name in files:
+                            fp = os.path.join(root, name)
+                            try:
+                                os.chmod(fp, stat.S_IWRITE)
+                                os.remove(fp)
+                            except Exception:
+                                log(f"  Silinemedi: {fp}")
+                        for name in dirs:
+                            dp = os.path.join(root, name)
+                            try:
+                                os.rmdir(dp)
+                            except Exception:
+                                pass
+                    try:
+                        os.rmdir(str(APP_DIR))
+                    except Exception:
+                        pass
             
             # ZIP'i çıkar
+            log("ZIP cikartiliyor...")
             with zipfile.ZipFile(zip_path, 'r') as z:
                 z.extractall(INSTALL_DIR / "_code_extract")
             
@@ -419,6 +468,7 @@ class ClipEngineLauncher:
             for item in extract_dir.iterdir():
                 if item.is_dir():
                     shutil.move(str(item), str(APP_DIR))
+                    log(f"Kod klasoru tasindi: {item.name} -> app")
                     break
             
             if extract_dir.exists():
@@ -431,12 +481,27 @@ class ClipEngineLauncher:
                 if dst.exists():
                     shutil.rmtree(dst)
                 shutil.move(str(backup_path), str(dst))
+                log(f"Yedek geri yuklendi: {folder}")
             
             if config_backup and config_backup.exists():
                 shutil.copy2(config_backup, APP_DIR / "config.json")
                 os.remove(config_backup)
             
-            self._set_status("ClipEngine güncellendi! ✓")
+            # Paket hash'ini sil ki paketler tekrar kurulsun
+            hash_file = INSTALL_DIR / "_req_hash.txt"
+            if hash_file.exists():
+                hash_file.unlink()
+                log("Paket hash'i silindi, paketler yeniden kurulacak.")
+            
+            # Dogrulama: version.txt kontrol
+            new_vf = APP_DIR / "version.txt"
+            if new_vf.exists():
+                new_ver = new_vf.read_text().strip()
+                log(f"Guncelleme sonrasi versiyon: {new_ver}")
+                self._set_status(f"ClipEngine v{new_ver} güncellendi! ✓")
+            else:
+                log("UYARI: Guncelleme sonrasi version.txt bulunamadi!")
+            
             self._set_step("ClipEngine Kodu", "done")
             self._set_progress(60)
             return True  # packages need reinstall
@@ -564,39 +629,116 @@ class ClipEngineLauncher:
         
         return server_process
     
-    def _setup_and_launch(self):
-        """Ana kurulum ve başlatma akışı"""
+    def _kill_old_processes(self):
+        """Onceki calismadan kalan Python/FFmpeg islemlerini zorla oldur"""
+        log("Eski islemler kontrol ediliyor...")
+        self._set_status("Eski islemler temizleniyor...")
+        
+        install_str = str(INSTALL_DIR).lower()
+        
         try:
+            # WMIC ile ClipEngine dizinindeki python.exe ve ffmpeg.exe'leri bul ve oldur
+            for proc_name in ["python.exe", "ffmpeg.exe", "ffprobe.exe"]:
+                try:
+                    result = subprocess.run(
+                        ["wmic", "process", "where", 
+                         f"name='{proc_name}'", "get", "ProcessId,ExecutablePath", "/format:csv"],
+                        capture_output=True, text=True, timeout=5,
+                        creationflags=subprocess.CREATE_NO_WINDOW
+                    )
+                    for line in result.stdout.strip().split("\n"):
+                        line = line.strip()
+                        if not line or "ExecutablePath" in line or "Node" in line:
+                            continue
+                        parts = line.split(",")
+                        if len(parts) >= 3:
+                            exe_path = parts[1].strip().lower()
+                            pid = parts[2].strip()
+                            if install_str in exe_path and pid.isdigit():
+                                log(f"  Eski islem olduruluyor: PID={pid} Path={exe_path}")
+                                subprocess.run(["taskkill", "/F", "/PID", pid],
+                                             capture_output=True, timeout=5,
+                                             creationflags=subprocess.CREATE_NO_WINDOW)
+                except Exception as e:
+                    log(f"  WMIC hata ({proc_name}): {e}")
+        except Exception as e:
+            log(f"Islem temizleme hatasi: {e}")
+        
+        log("Eski islem temizligi tamamlandi.")
+        time.sleep(1)  # Dosya kilitlerinin acilmasi icin kisa bekle
+    
+    def _setup_and_launch(self):
+        """Ana kurulum ve baslat akisi"""
+        try:
+            # Log dosyasini sifirla
+            try:
+                os.makedirs(INSTALL_DIR, exist_ok=True)
+                with open(LOG_FILE, "w", encoding="utf-8") as f:
+                    f.write(f"=== ClipEngine Debug Log ===")
+                    f.write(f"\nBaslangic: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+                    f.write(f"INSTALL_DIR: {INSTALL_DIR}\n")
+                    f.write(f"APP_DIR: {APP_DIR}\n\n")
+            except Exception:
+                pass
+            
+            # 0. Eski islemleri oldur
+            self._kill_old_processes()
+            
             # 1. Python
+            log("=== ADIM 1: Python ===")
             python_exe = self._setup_python()
+            log(f"Python OK: {python_exe}")
             
             # 2. FFmpeg
+            log("=== ADIM 2: FFmpeg ===")
             self._setup_ffmpeg()
+            log("FFmpeg OK")
             
-            # 3. Kodu indir/güncelle
+            # 3. Kodu indir/guncelle
+            log("=== ADIM 3: Kod Guncelleme ===")
             code_updated = self._setup_code()
+            log(f"Kod guncellendi mi: {code_updated}")
+            
+            # Guncelleme sonrasi version kontrolu
+            vf = APP_DIR / "version.txt"
+            if vf.exists():
+                log(f"Yuklenen versiyon: {vf.read_text().strip()}")
             
             # 4. Paketleri kur
+            log("=== ADIM 4: Paketler ===")
             self._setup_packages(python_exe, force=code_updated)
+            log("Paketler OK")
             
-            # 5. Sunucuyu başlat
+            # 5. Sunucuyu baslat
+            log("=== ADIM 5: Sunucu ===")
             self._launch_server(python_exe)
             
         except Exception as e:
-            self._set_status(f"❌ Hata: {str(e)}", "")
-            self.root.after(0, lambda: messagebox.showerror("ClipEngine Hata", f"Bir hata oluştu:\n\n{str(e)}"))
+            import traceback
+            err_msg = traceback.format_exc()
+            log(f"KRITIK HATA: {err_msg}")
+            self._set_status(f"Hata: {str(e)}", f"Detaylar: {LOG_FILE}")
+            self.root.after(0, lambda: messagebox.showerror(
+                "ClipEngine Hata", 
+                f"Bir hata olustu:\n\n{str(e)}\n\nDetayli log:\n{LOG_FILE}"
+            ))
     
     def run(self):
-        # Pencere kapatıldığında sunucuyu da kapat
+        # Pencere kapatildiginda sunucuyu da kapat
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
         self.root.mainloop()
     
     def _on_close(self):
+        log("Kapatiliyor...")
         if hasattr(self, 'server_process') and self.server_process:
             try:
                 self.server_process.terminate()
-            except:
-                pass
+                self.server_process.wait(timeout=3)
+            except Exception:
+                try:
+                    self.server_process.kill()
+                except Exception:
+                    pass
         self.root.destroy()
         os._exit(0)
 
