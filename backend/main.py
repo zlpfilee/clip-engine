@@ -651,7 +651,7 @@ class PreviewLayoutRequest(BaseModel):
     split_settings: Optional[SplitSettings] = None
 
 @app.post("/api/preview/trim")
-async def preview_trim(req: PreviewTrimRequest):
+def preview_trim(req: PreviewTrimRequest):
     temp_dir = MEDIA_DIR / "preview_temp"
     os.makedirs(temp_dir, exist_ok=True)
     out_id = uuid.uuid4().hex[:8]
@@ -677,7 +677,7 @@ class PreviewCameraTrimRequest(BaseModel):
 
 
 @app.post("/api/preview/trim-camera")
-async def preview_trim_camera(req: PreviewCameraTrimRequest):
+def preview_trim_camera(req: PreviewCameraTrimRequest):
     """Kesilmiş klipten kamera bölgesini ayrı bir dosya olarak çıkar"""
     temp_dir = MEDIA_DIR / "preview_temp"
     os.makedirs(temp_dir, exist_ok=True)
@@ -731,7 +731,7 @@ async def preview_trim_camera(req: PreviewCameraTrimRequest):
 
 
 @app.post("/api/preview/layout")
-async def preview_layout(req: PreviewLayoutRequest):
+def preview_layout(req: PreviewLayoutRequest):
     temp_dir = MEDIA_DIR / "preview_temp"
     os.makedirs(temp_dir, exist_ok=True)
     out_id = uuid.uuid4().hex[:8]
