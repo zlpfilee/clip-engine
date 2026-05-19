@@ -4,12 +4,18 @@ Ana sunucu: video işleme, dosya yönetimi ve platform upload API'ları
 """
 
 import os
+import sys
 import json
 import uuid
 import shutil
 import asyncio
 import threading
 from pathlib import Path
+
+# Embedded Python (Portable) için bulunduğu dizini sys.path'e ekle
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 from datetime import datetime
 import re
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
