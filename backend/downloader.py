@@ -206,6 +206,7 @@ def _download_kick_direct(m3u8_url: str, output_path: str, quality: str = "1080"
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
+        stdin=subprocess.DEVNULL,
         universal_newlines=True,
         encoding='utf-8',
         errors='replace'
@@ -404,6 +405,7 @@ def _ytdlp_download_generator(url: str, quality: str, output_dir: str, custom_na
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
+        stdin=subprocess.DEVNULL,
         universal_newlines=True,
         encoding='utf-8',
         errors='replace'

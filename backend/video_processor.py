@@ -77,7 +77,7 @@ def get_video_info(video_path: str) -> dict:
         "-show_format", "-show_streams",
         video_path
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
     data = json.loads(result.stdout)
     
     video_stream = next(
@@ -122,7 +122,7 @@ def cut_clip(
         output_path
     ]
     
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
     if result.returncode != 0:
         raise RuntimeError(f"FFmpeg hata: {result.stderr}")
     
@@ -233,7 +233,7 @@ def crop_to_vertical(
         output_path
     ]
     
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
     if result.returncode != 0:
         raise RuntimeError(f"FFmpeg hata: {result.stderr}")
     
@@ -285,7 +285,7 @@ def add_watermark(
         output_path
     ]
     
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
     if result.returncode != 0:
         raise RuntimeError(f"FFmpeg hata: {result.stderr}")
     
@@ -340,7 +340,7 @@ def add_hook_text(
         output_path
     ]
     
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
     if result.returncode != 0:
         raise RuntimeError(f"FFmpeg hata: {result.stderr}")
     
@@ -457,7 +457,7 @@ def burn_subtitles(
         output_path
     ]
     
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
     if result.returncode != 0:
         raise RuntimeError(f"FFmpeg hata: {result.stderr}")
     
@@ -756,7 +756,7 @@ def apply_advanced_layers(input_path: str, output_path: str, text_layers: list, 
     
     print(f"[DEBUG] FFmpeg layer cmd: {' '.join(cmd)}")
     
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
     if result.returncode != 0:
         print(f"Layer uyarı: {result.stderr}")
         import shutil

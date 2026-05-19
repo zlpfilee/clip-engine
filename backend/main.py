@@ -702,7 +702,7 @@ async def preview_trim_camera(req: PreviewCameraTrimRequest):
             out_path
         ]
         
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
         if result.returncode != 0:
             raise RuntimeError(f"FFmpeg kamera crop hatası: {result.stderr[:500]}")
         
@@ -991,7 +991,7 @@ async def system_status():
     # Check FFmpeg
     try:
         import subprocess
-        result = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True)
+        result = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True, stdin=subprocess.DEVNULL)
         if result.returncode == 0:
             status["ffmpeg"] = True
     except Exception:
