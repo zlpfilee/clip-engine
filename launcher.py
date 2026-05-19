@@ -556,6 +556,7 @@ class ClipEngineLauncher:
         self.root.after(2000, lambda: self.root.iconify())
         
         # Sunucu durmasını bekle
+        self.server_process = server_process
         try:
             server_process.wait()
         except KeyboardInterrupt:
@@ -591,6 +592,11 @@ class ClipEngineLauncher:
         self.root.mainloop()
     
     def _on_close(self):
+        if hasattr(self, 'server_process') and self.server_process:
+            try:
+                self.server_process.terminate()
+            except:
+                pass
         self.root.destroy()
         os._exit(0)
 
