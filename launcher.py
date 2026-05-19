@@ -81,6 +81,9 @@ class ClipEngineLauncher:
         self.root.attributes("-topmost", True)
         self.root.after(100, lambda: self.root.attributes("-topmost", False))
         
+        self.server_process = None
+        self.root.protocol("WM_DELETE_WINDOW", self._on_closing)
+        
         self._center_window()
         self._build_ui()
         
@@ -96,6 +99,16 @@ class ClipEngineLauncher:
         y = (self.root.winfo_screenheight() // 2) - (h // 2)
         self.root.geometry(f"{w}x{h}+{x}+{y}")
     
+    def _on_closing(self):
+        self._set_status("Kapatılıyor...", "Lütfen bekleyin...")
+        self.root.update()
+        if hasattr(self, 'server_process') and self.server_process:
+            try:
+                self.server_process.kill()
+            except Exception:
+                pass
+        self.root.destroy()
+        
     def _build_ui(self):
         # Ana frame
         main = tk.Frame(self.root, bg="#0a0a0a")
