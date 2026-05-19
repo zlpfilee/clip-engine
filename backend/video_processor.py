@@ -118,10 +118,7 @@ def cut_clip(
         "-ss", str(start_time),
         "-to", str(end_time),
         "-i", source_path,
-        *get_video_codec_args(),
-        "-b:v", "5M",
-        "-c:a", "aac",
-        "-b:a", "192k",
+        "-c", "copy",
         output_path
     ]
     
