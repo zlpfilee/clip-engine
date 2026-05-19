@@ -377,10 +377,10 @@ def _ytdlp_download_generator(url: str, quality: str, output_dir: str, custom_na
             format_str = f"bestvideo[height<={quality}][ext=mp4]+bestaudio[ext=m4a]/best[height<={quality}][ext=mp4]/best"
     
     import sys
-    yt_dlp_exe = os.path.join(os.path.dirname(sys.executable), "yt-dlp")
     
     cmd = [
-        yt_dlp_exe,
+        sys.executable,
+        "-m", "yt_dlp",
         "--newline",
         "--force-ipv4",
         "--socket-timeout", "30",
