@@ -670,8 +670,9 @@ async def preview_trim_camera(req: PreviewCameraTrimRequest):
         raise HTTPException(404, "Kesilmiş (trim) kaynak bulunamadı")
         
     try:
-        from video_processor import get_video_info
-        import subprocess
+        from video_processor import get_video_info, _run_ffmpeg, get_video_codec_args, slog
+        
+        slog(f"[preview/trim-camera] trimmed={req.trimmed_filename} cam_x={req.cam_x} cam_y={req.cam_y} cam_w={req.cam_w}")
         
         info = get_video_info(trimmed_path)
         src_w, src_h = info["width"], info["height"]
@@ -702,9 +703,7 @@ async def preview_trim_camera(req: PreviewCameraTrimRequest):
             out_path
         ]
         
-        result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
-        if result.returncode != 0:
-            raise RuntimeError(f"FFmpeg kamera crop hatası: {result.stderr[:500]}")
+        _run_ffmpeg(cmd, timeout=120, label="preview/trim-camera")
         
         return {"filename": out_name, "url": f"/media/preview_temp/{out_name}"}
     except Exception as e:
@@ -724,10 +723,14 @@ async def preview_layout(req: PreviewLayoutRequest):
         raise HTTPException(404, "Kesilmiş (trim) kaynak bulunamadı")
         
     try:
-        from video_processor import crop_to_vertical
+        from video_processor import crop_to_vertical, slog
+        slog(f"[preview/layout] trimmed={req.trimmed_filename} crop_mode={req.crop_mode}")
         crop_to_vertical(trimmed_path, out_path, mode=req.crop_mode, split_settings=req.split_settings.dict() if req.split_settings else None)
+        slog(f"[preview/layout] Basarili: {out_name}")
         return {"filename": out_name, "url": f"/media/preview_temp/{out_name}"}
     except Exception as e:
+        from video_processor import slog
+        slog(f"[preview/layout] HATA: {e}")
         raise HTTPException(500, str(e))
 
 
