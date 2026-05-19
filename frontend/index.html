@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClipEngine — İçerik Otomasyon Merkezi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="/frontend/style.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">
+                <span class="material-icons-round">movie_filter</span>
+            </div>
+            <div class="logo-text">
+                <h1>ClipEngine</h1>
+                <span>İçerik Otomasyonu</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-section="dashboard">
+                <span class="material-icons-round">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" data-section="create">
+                <span class="material-icons-round">auto_fix_high</span>
+                <span>Klip Oluştur</span>
+            </a>
+            <a href="#" class="nav-item" data-section="download">
+                <span class="material-icons-round">download</span>
+                <span>Medya İndir</span>
+            </a>
+            <a href="#" class="nav-item" data-section="library">
+                <span class="material-icons-round">video_library</span>
+                <span>Kütüphane</span>
+            </a>
+            <a href="#" class="nav-item" data-section="upload">
+                <span class="material-icons-round">cloud_upload</span>
+                <span>Paylaş</span>
+            </a>
+            <a href="#" class="nav-item" data-section="settings">
+                <span class="material-icons-round">settings</span>
+                <span>Ayarlar</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="platform-status" id="platformStatus">
+                <div class="status-dot" id="ytStatus" title="YouTube"></div>
+                <div class="status-dot" id="ttStatus" title="TikTok"></div>
+                <div class="status-dot" id="igStatus" title="Instagram"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Section -->
+        <section class="section active" id="section-dashboard">
+            <div class="section-header">
+                <div>
+                    <h2>Dashboard</h2>
+                    <p class="section-subtitle">Günlük içerik durumun</p>
+                </div>
+                <div class="header-actions">
+                    <span class="date-display" id="currentDate"></span>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card gradient-purple">
+                    <div class="stat-icon"><span class="material-icons-round">cut</span></div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="statProcessed">0</span>
+                        <span class="stat-label">Toplam İşlenen</span>
+                    </div>
+                </div>
+                <div class="stat-card gradient-blue">
+                    <div class="stat-icon"><span class="material-icons-round">cloud_done</span></div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="statUploaded">0</span>
+                        <span class="stat-label">Toplam Paylaşılan</span>
+                    </div>
+                </div>
+                <div class="stat-card gradient-green">
+                    <div class="stat-icon"><span class="material-icons-round">today</span></div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="statToday">0</span>
+                        <span class="stat-label">Bugünkü Klipler</span>
+                    </div>
+                </div>
+                <div class="stat-card gradient-orange">
+                    <div class="stat-icon"><span class="material-icons-round">pending_actions</span></div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="statReady">0</span>
+                        <span class="stat-label">Paylaşıma Hazır</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card channel-summary">
+                    <h3><span class="material-icons-round">analytics</span> Kanal Dağılımı</h3>
+                    <div class="channel-bars">
+                        <div class="channel-bar-item">
+                            <div class="channel-bar-label">
+                                <span class="channel-dot anime"></span>Anime
+                            </div>
+                            <div class="channel-bar-track">
+                                <div class="channel-bar-fill anime" id="barAnime" style="width:0%"></div>
+                            </div>
+                            <span class="channel-bar-count" id="countAnime">0</span>
+                        </div>
+                        <div class="channel-bar-item">
+                            <div class="channel-bar-label">
+                                <span class="channel-dot film"></span>Film
+                            </div>
+                            <div class="channel-bar-track">
+                                <div class="channel-bar-fill film" id="barFilm" style="width:0%"></div>
+                            </div>
+                            <span class="channel-bar-count" id="countFilm">0</span>
+                        </div>
+                        <div class="channel-bar-item">
+                            <div class="channel-bar-label">
+                                <span class="channel-dot dizi"></span>Dizi
+                            </div>
+                            <div class="channel-bar-track">
+                                <div class="channel-bar-fill dizi" id="barDizi" style="width:0%"></div>
+                            </div>
+                            <span class="channel-bar-count" id="countDizi">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card recent-clips">
+                    <h3><span class="material-icons-round">history</span> Son İşlenen Klipler</h3>
+                    <div class="clip-list" id="recentClipsList">
+                        <div class="empty-state">
+                            <span class="material-icons-round">video_library</span>
+                            <p>Henüz klip işlenmedi</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Download Media Section -->
+        <section class="section" id="section-download">
+            <div class="section-header">
+                <div>
+                    <h2>Medya İndir</h2>
+                    <p class="section-subtitle">YouTube, Twitch VOD ve Kick yayınlarını indir</p>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- YouTube Download Card -->
+                <div class="card" style="border-top: 4px solid #ff0000;">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px; gap: 10px;">
+                        <span class="material-icons-round" style="color: #ff0000; font-size: 28px;">youtube_searched_for</span>
+                        <h3 style="margin: 0; font-size: 18px;">YouTube</h3>
+                    </div>
+                    <div class="form-group">
+                        <label>Video URL</label>
+                        <input type="text" id="ytUrl" placeholder="https://youtube.com/watch?v=..." class="input">
+                    </div>
+                    <div class="form-group">
+                        <label>Çözünürlük</label>
+                        <select id="ytQuality" class="input">
+                            <option value="1080">1080p</option>
+                            <option value="720">720p</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary btn-large download-start-btn" data-platform="yt" style="width: 100%; margin-top: 10px; background-color: #ff0000;">
+                        <span class="material-icons-round">download</span> İndir
+                    </button>
+                </div>
+
+                <!-- Kick Download Card -->
+                <div class="card" style="border-top: 4px solid #53FC18;">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px; gap: 10px;">
+                        <span class="material-icons-round" style="color: #53FC18; font-size: 28px;">sports_esports</span>
+                        <h3 style="margin: 0; font-size: 18px;">Kick</h3>
+                    </div>
+                    <div class="form-group">
+                        <label>Yayın / VOD URL</label>
+                        <input type="text" id="kickUrl" placeholder="https://kick.com/video/..." class="input">
+                    </div>
+                    <div class="form-group">
+                        <label>Çözünürlük</label>
+                        <select id="kickQuality" class="input">
+                            <option value="1080">1080p</option>
+                            <option value="720">720p</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary btn-large download-start-btn" data-platform="kick" style="width: 100%; margin-top: 10px; background-color: #53FC18; color: #000;">
+                        <span class="material-icons-round">download</span> İndir
+                    </button>
+                </div>
+
+                <!-- Twitch Download Card -->
+                <div class="card" style="border-top: 4px solid #9146FF;">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px; gap: 10px;">
+                        <span class="material-icons-round" style="color: #9146FF; font-size: 28px;">videogame_asset</span>
+                        <h3 style="margin: 0; font-size: 18px;">Twitch</h3>
+                    </div>
+                    <div class="form-group">
+                        <label>VOD / Klip URL</label>
+                        <input type="text" id="twitchUrl" placeholder="https://twitch.tv/videos/..." class="input">
+                    </div>
+                    <div class="form-group">
+                        <label>Çözünürlük</label>
+                        <select id="twitchQuality" class="input">
+                            <option value="1080">1080p</option>
+                            <option value="720">720p</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary btn-large download-start-btn" data-platform="twitch" style="width: 100%; margin-top: 10px; background-color: #9146FF;">
+                        <span class="material-icons-round">download</span> İndir
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Tracker -->
+            <div id="dlProgressContainer" style="display: none; margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); max-width: 800px; margin-left: auto; margin-right: auto;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span id="dlProgressText" style="font-size: 16px; font-weight: 500;">İndirme başlatılıyor...</span>
+                    <span id="dlPercentText" style="font-size: 18px; font-weight: 800; color: var(--primary);">%0</span>
+                </div>
+                
+                <div class="progress-bar" style="height: 12px; margin-bottom: 20px; background: rgba(255,255,255,0.1);">
+                    <div class="progress-fill" id="dlProgressFill" style="width: 0%; background: var(--primary); transition: width 0.3s ease;"></div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; text-align: center;">
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">İndirilen Boyut</div>
+                        <div id="dlSizeText" style="font-size: 18px; font-weight: 700;">--</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">Bağlantı Hızı</div>
+                        <div id="dlSpeedText" style="font-size: 18px; font-weight: 700; color: #4caf50;">--</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">Kalan Tahmini Süre</div>
+                        <div id="dlEtaText" style="font-size: 18px; font-weight: 700; color: #ff9800;">--</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 20px;">
+                <h3><span class="material-icons-round">cloud_upload</span> Bilgisayardan Yerel Dosya Yükle</h3>
+                <div class="upload-zone" id="uploadZone">
+                    <span class="material-icons-round">cloud_upload</span>
+                    <p><span class="upload-link">Dosya seç</span> veya sürükle bırak</p>
+                    <span class="upload-hint">MP4, MKV, AVI, WEBM, MPG (Max 5GB)</span>
+                    <input type="file" id="fileInput" accept="video/*" class="hidden">
+                </div>
+                <div id="uploadProgressContainer" class="progress-container" style="display: none;">
+                    <div class="progress-text">Yükleniyor... <span id="uploadPercentText">0%</span></div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="uploadProgressFill"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Create Clip Section (WIZARD) -->
+        <section class="section" id="section-create">
+            <div class="section-header">
+                <div>
+                    <h2>Klip Oluştur</h2>
+                    <p class="section-subtitle">Adım adım dikey klip oluştur</p>
+                </div>
+            </div>
+
+            <!-- Sihirbaz Adım Navigasyonu -->
+            <div class="wizard-nav">
+                <button class="wizard-step active" data-step="1">
+                    <span class="step-num">1</span> Kaynak Seçimi
+                </button>
+                <div class="wizard-divider"></div>
+                <button class="wizard-step" data-step="2">
+                    <span class="step-num">2</span> Klip Tanımlama
+                </button>
+                <div class="wizard-divider"></div>
+                <button class="wizard-step" data-step="3">
+                    <span class="step-num">3</span> Dikey Düzen (Layout)
+                </button>
+                <div class="wizard-divider"></div>
+                <button class="wizard-step" data-step="4">
+                    <span class="step-num">4</span> Süsleme & Paylaş
+                </button>
+            </div>
+
+            <div class="create-layout">
+                <!-- LEFT: Wizard Content Column -->
+                <div class="create-settings-col">
+                    
+                    <!-- ADIM 1: KAYNAK SEÇİMİ -->
+                    <div class="wizard-panel active" id="wizard-step-1">
+                        <div class="card source-card">
+                            <h3><span class="material-icons-round">source</span> Kaynak Video</h3>
+                            <p class="form-hint" style="margin-bottom: 15px;">İndirdiğin veya yüklediğin uzun videoyu seç.</p>
+                            <div class="source-list" id="sourceList">
+                                <div class="loading-spinner">
+                                    <span class="material-icons-round spin">autorenew</span>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 20px; text-align: right;">
+                                <button class="btn btn-primary" onclick="window.nextWizardStep(2)">İleri <span class="material-icons-round">arrow_forward</span></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ADIM 2: KLİP TANIMLAMA -->
+                    <div class="wizard-panel" id="wizard-step-2" style="display: none;">
+                        <div class="card settings-card">
+                            <h3><span class="material-icons-round">content_cut</span> Klip Tanımlama</h3>
+                            <p class="form-hint" style="margin-bottom: 12px;">Kaynak videodan birden fazla klip tanımla. Her klip ayrı ayrı kesilir.</p>
+
+                            <!-- Video Player -->
+                            <div class="source-video-player" id="sourceVideoPlayer" style="display:none;">
+                                <video id="sourcePreviewVideo" preload="metadata"></video>
+                                <div class="video-controls-bar">
+                                    <button class="btn-icon" id="btnPlayPause" title="Oynat/Duraklat">
+                                        <span class="material-icons-round">play_arrow</span>
+                                    </button>
+                                    <span class="time-display" id="currentTimeDisplay">0:00</span>
+                                    <div class="timeline-container" id="timelineContainer">
+                                        <div class="timeline-bar" id="timelineBar">
+                                            <div class="timeline-progress" id="timelineProgress"></div>
+                                            <div class="timeline-selection" id="timelineSelection"></div>
+                                            <div class="timeline-marker start-marker" id="startMarker"></div>
+                                            <div class="timeline-marker end-marker" id="endMarker"></div>
+                                        </div>
+                                        <div class="timeline-scrubber" id="timelineScrubber"></div>
+                                    </div>
+                                    <span class="time-display" id="durationDisplay">0:00</span>
+                                    <div class="speed-controls">
+                                        <button class="speed-btn" data-speed="0.5">0.5x</button>
+                                        <button class="speed-btn active" data-speed="1">1x</button>
+                                        <button class="speed-btn" data-speed="1.5">1.5x</button>
+                                        <button class="speed-btn" data-speed="2">2x</button>
+                                        <button class="speed-btn" data-speed="4">4x</button>
+                                    </div>
+                                </div>
+                                <div class="mark-buttons">
+                                    <button class="btn btn-sm mark-start" id="btnMarkStart">
+                                        <span class="material-icons-round">start</span> Başlangıç
+                                    </button>
+                                    <button class="btn btn-sm mark-end" id="btnMarkEnd">
+                                        <span class="material-icons-round">flag</span> Bitiş
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Aktif Klip Süre Girişi -->
+                            <div class="form-row" style="margin-top: 10px;">
+                                <div class="form-group">
+                                    <label for="startTime">Başlangıç (SS:DD:SS)</label>
+                                    <input type="text" id="startTime" placeholder="00:01:30" class="input">
+                                </div>
+                                <div class="form-group">
+                                    <label for="endTime">Bitiş (SS:DD:SS)</label>
+                                    <input type="text" id="endTime" placeholder="00:02:15" class="input">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group" style="flex: 2;">
+                                    <label for="activeClipName">Klip İsmi</label>
+                                    <input type="text" id="activeClipName" placeholder="Sahne 1 - Kavga" class="input">
+                                </div>
+                                <div class="form-group" style="flex: 1; display: flex; align-items: flex-end;">
+                                    <button class="btn btn-outline" id="btnPreviewOriginalCut" style="width: 100%;">
+                                        <span class="material-icons-round" style="font-size:16px">play_circle</span> Oynat
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-primary" id="btnAddClipToList" style="width: 100%; margin-bottom: 15px;">
+                                <span class="material-icons-round">add_circle</span> Bu Klibi Kes ve Listeye Ekle
+                            </button>
+                        </div>
+
+                        <!-- Klip Listesi -->
+                        <div class="card" style="margin-top: 16px;">
+                            <h3 style="margin-bottom: 12px;">
+                                <span class="material-icons-round">list</span> Tanımlanan Klipler
+                                <span id="clipCountBadge" style="background: var(--primary); color: #fff; font-size: 12px; padding: 2px 8px; border-radius: 10px; margin-left: 8px;">0</span>
+                            </h3>
+                            <div id="clipCardsList" style="display: flex; flex-direction: column; gap: 10px;">
+                                <div id="emptyClipsText" style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px 0;">
+                                    <span class="material-icons-round" style="font-size: 32px; display: block; margin-bottom: 8px; opacity: 0.4;">movie_filter</span>
+                                    Henüz klip tanımlanmadı. Yukarıdan süre seç ve "Kes ve Listeye Ekle" butonuna bas.
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px; display: flex; justify-content: space-between;">
+                            <button class="btn btn-secondary" onclick="window.nextWizardStep(1)">Geri</button>
+                            <button class="btn btn-primary" id="btnStep2Next" disabled>İleri <span class="material-icons-round">arrow_forward</span></button>
+                        </div>
+                    </div>
+
+                    <!-- ADIM 3: DİKEY DÜZEN (LAYOUT) -->
+                    <div class="wizard-panel" id="wizard-step-3" style="display: none;">
+                        <div class="card settings-card">
+                            <h3><span class="material-icons-round">movie_creation</span> Dikey Format Oluştur</h3>
+                            <p class="form-hint" style="margin-bottom: 12px;">Kesilmiş kliplere dikey format (9:16) uygula.</p>
+
+                            <!-- Klip seçimi -->
+                            <div class="form-group">
+                                <label>İşlenecek Klip</label>
+                                <select id="layoutClipSelect" class="input">
+                                    <option value="" disabled selected>Klip seçin...</option>
+                                </select>
+                            </div>
+
+                            <!-- Düzen Modu (Yayıncı ise kamera seçimi burada olur) -->
+                            <div class="card" style="margin-top: 16px; margin-bottom: 16px; padding: 0; background: transparent; border: none;">
+                                <h3><span class="material-icons-round">vertical_split</span> Düzen Modu</h3>
+                                <div class="form-group" style="margin-top: 10px;">
+                                    <select id="cropMode" class="input" onchange="window.updateLayoutUI()">
+                                        <option value="blur">Klasik (Bulanık Arkaplan)</option>
+                                        <option value="split">Yayıncı Modu (Üstte Kamera, Altta Oyun)</option>
+                                        <option value="fit">Sığdır (Siyah Bar)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Kamera Bölgesi Seçimi — sadece split modunda görünür -->
+                                <div id="splitLayoutSettings" style="display: none; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-top: 12px;">
+                                    <h4 style="margin: 0 0 10px 0; font-size: 14px; color: var(--accent-purple);">Kamera (Facecam) Konumu</h4>
+                                    
+                                    <div class="region-selector-container" id="regionSelectorContainer">
+                                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+                                            📌 Sağdaki önizlemede görünen klibin <strong>fareyle sürükleyerek</strong> kamerasını seçin
+                                        </p>
+                                        <div class="region-selector" id="regionSelector">
+                                            <img id="regionSelectorFrame" style="display:none;" />
+                                            <div class="no-frame-text" id="regionNoFrame">
+                                                <span class="material-icons-round">videocam</span>
+                                                <span>Önce klip seçin</span>
+                                            </div>
+                                            <div class="selection-rect cam-rect" id="camSelectionRect">
+                                                <span>Kamera</span>
+                                            </div>
+                                        </div>
+                                        <div class="region-btn-row">
+                                            <button class="btn btn-sm" id="btnResetRegion" style="background: rgba(239,68,68,0.15); color: var(--accent-red); border: 1px solid rgba(239,68,68,0.3);">
+                                                <span class="material-icons-round" style="font-size:16px;">refresh</span> Sıfırla
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Gizli input'lar -->
+                                    <div style="display: none;">
+                                        <input type="number" id="camX" value="0" class="input" min="0" max="100">
+                                        <input type="number" id="camY" value="0" class="input" min="0" max="100">
+                                        <input type="number" id="camW" value="25" class="input" min="10" max="100">
+                                    </div>
+                                    
+                                    <div class="form-group" style="margin-top: 10px;">
+                                        <label>Yüz Takibi (Auto-Tracking)</label>
+                                        <label class="checkbox-label" style="margin-top: 5px;">
+                                            <input type="checkbox" id="autoTracking">
+                                            <span class="checkmark"></span> Kamera hareketliyse yayıncının yüzünü takip et
+                                        </label>
+                                    </div>
+                                    <div class="form-group" style="margin-top: 10px;">
+                                        <label>Arkaplan Rengi</label>
+                                        <label class="checkbox-label" style="margin-top: 5px;">
+                                            <input type="checkbox" id="splitBlackBg">
+                                            <span class="checkmark"></span> Bulanık yerine siyah arkaplan kullan
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-primary" id="btnApplyLayout" style="width: 100%; margin-bottom: 15px;">
+                                <span class="material-icons-round">movie_creation</span> Düzeni Uygula (İşle)
+                            </button>
+
+                            <!-- Layout durumu -->
+                            <div id="layoutStatusList" style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;"></div>
+
+                            <div style="margin-top: 20px; display: flex; justify-content: space-between;">
+                                <button class="btn btn-secondary" onclick="window.nextWizardStep(2)">Geri</button>
+                                <button class="btn btn-primary" id="btnNextFromLayout" disabled>İleri <span class="material-icons-round">arrow_forward</span></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ADIM 4: SÜSLEME & EXPORT -->
+                    <div class="wizard-panel" id="wizard-step-4" style="display: none;">
+                        <div class="card settings-card">
+                            <h3><span class="material-icons-round">text_fields</span> Süsleme ve Altyazı</h3>
+                            
+                            <div class="form-group">
+                                <label>Kanal</label>
+                                <div class="channel-selector">
+                                    <button class="channel-btn active" data-channel="anime">
+                                        <span class="channel-dot anime"></span>Anime
+                                    </button>
+                                    <button class="channel-btn" data-channel="film">
+                                        <span class="channel-dot film"></span>Film
+                                    </button>
+                                    <button class="channel-btn" data-channel="dizi">
+                                        <span class="channel-dot dizi"></span>Dizi
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="clipTitle">Başlık</label>
+                                <input type="text" id="clipTitle" placeholder="Klibin adı..." class="input">
+                            </div>
+
+                            <div class="form-group checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="addSubtitles" checked>
+                                    <span class="checkmark"></span>
+                                    Otomatik altyazı ekle (Whisper AI)
+                                </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Altyazı Dilleri</label>
+                                <div class="checkbox-row" style="display:flex; gap:15px; margin-top:6px;">
+                                    <label class="checkbox-label" style="margin-bottom:0">
+                                        <input type="checkbox" name="subtitleLang" value="en" checked>
+                                        <span class="checkmark"></span> EN
+                                    </label>
+                                    <label class="checkbox-label" style="margin-bottom:0">
+                                        <input type="checkbox" name="subtitleLang" value="tr" checked>
+                                        <span class="checkmark"></span> TR
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="hashtagInput">Hashtag'ler</label>
+                                <input type="text" id="hashtagInput" placeholder="#viral #edit" class="input">
+                            </div>
+
+                            <div style="margin-top: 20px; display: flex; justify-content: space-between;">
+                                <button class="btn btn-secondary" onclick="window.nextWizardStep(3)">Geri</button>
+                                <button class="btn btn-primary" id="processBtn" disabled>
+                                    <span class="material-icons-round">movie_creation</span> Render Başlat
+                                </button>
+                            </div>
+
+                            <div class="progress-container hidden" id="progressContainer">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progressFill"></div>
+                                </div>
+                                <span class="progress-text" id="progressText">İşleniyor...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MIDDLE: Layer Controls Column (Only visible in Step 4) -->
+                <div class="create-controls-col" id="layerControlsCol" style="display: none;">
+                    <!-- Altyazı, Katman Ekleme Bölümleri -->
+                    <div class="text-overlay-controls">
+                        <div class="readout-title" style="margin-bottom:12px; display:flex; justify-content:space-between;">
+                            <div>
+                                <span class="material-icons-round" style="font-size:16px">layers</span>
+                                Yazı Katmanları
+                            </div>
+                            <button id="addTextLayerBtn" class="btn btn-sm" style="background:var(--accent-orange); color:#111; padding:4px 12px; font-weight:600;">+ Ekle</button>
+                        </div>
+                        <div id="textLayersList" style="display:flex; flex-direction:column; gap:12px;">
+                            <div id="emptyLayersText" style="text-align:center; color:var(--text-muted); font-size:13px; padding:16px 0;">
+                                Henüz yazı katmanı yok. (Üste, ortaya, alta yazı ekle)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="image-overlay-controls" style="margin-top: 20px;">
+                        <div class="readout-title" style="margin-bottom:12px; display:flex; justify-content:space-between;">
+                            <div>
+                                <span class="material-icons-round" style="font-size:16px">image</span>
+                                Görsel / Logo
+                            </div>
+                            <input type="file" id="uploadAssetInput" accept="image/png, image/jpeg, image/gif" style="display:none;">
+                            <button id="addImageLayerBtn" class="btn btn-sm" style="background:var(--accent-blue); color:#fff; padding:4px 12px; font-weight:600;">+ Ekle</button>
+                        </div>
+                        <div id="imageLayersList" style="display:flex; flex-direction:column; gap:12px;">
+                            <div id="emptyImageLayersText" style="text-align:center; color:var(--text-muted); font-size:13px; padding:16px 0;">
+                                Henüz görsel katmanı yok.
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="textOverlayY" value="50">
+                    <input type="hidden" id="subtitleMarginV" value="80">
+                </div>
+
+                <!-- RIGHT: Phone Preview Column -->
+                <div class="create-phone-col">
+                    <div class="phone-frame">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen" id="phonePreview">
+                            <div class="preview-video-area" id="previewVideoArea" style="position: relative; overflow: hidden; width: 100%; height: 100%;">
+                                <div class="preview-blur-bg"></div>
+                                <video id="phonePreviewVideo" autoplay loop playsinline onclick="this.paused ? this.play() : this.pause()" style="width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; display: none; cursor: pointer;"></video>
+                                <div class="preview-video-content" id="previewVideoContent">
+                                    <span class="material-icons-round">movie</span>
+                                </div>
+                            </div>
+                            
+                            <div class="draggable-element draggable-subtitle" id="draggableSubtitle" style="display: none;">
+                                <div class="drag-handle">
+                                    <span class="material-icons-round">drag_indicator</span>
+                                </div>
+                                <div class="subtitle-text-preview">
+                                    <span>Örnek altyazı metni</span>
+                                </div>
+                            </div>
+                            
+                            <div id="dynamicTextLayersContainer"></div>
+                            <div id="dynamicImageLayersContainer"></div>
+                            
+                            <div class="position-guide top-guide" id="guideTop"><span>Üst</span></div>
+                            <div class="position-guide center-guide" id="guideCenter"><span>Orta</span></div>
+                            <div class="position-guide bottom-guide" id="guideBottom"><span>Alt</span></div>
+                        </div>
+                        <div class="phone-home-bar"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Library Section -->
+        <section class="section" id="section-library">
+            <div class="section-header">
+                <div>
+                    <h2>Kütüphane</h2>
+                    <p class="section-subtitle">İşlenmiş tüm klipler</p>
+                </div>
+                <div class="header-actions">
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" data-filter="all">Tümü</button>
+                        <button class="filter-tab" data-filter="anime">Anime</button>
+                        <button class="filter-tab" data-filter="film">Film</button>
+                        <button class="filter-tab" data-filter="dizi">Dizi</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="library-grid" id="libraryGrid">
+                <div class="empty-state">
+                    <span class="material-icons-round">video_library</span>
+                    <p>Henüz klip yok. "Klip Oluştur" ile başla!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Upload Section -->
+        <section class="section" id="section-upload">
+            <div class="section-header">
+                <div>
+                    <h2>Platformlara Paylaş</h2>
+                    <p class="section-subtitle">Hazır klipleri sosyal medyaya yükle</p>
+                </div>
+            </div>
+
+            <div class="upload-grid">
+                <div class="card">
+                    <h3><span class="material-icons-round">checklist</span> Paylaşıma Hazır Klipler</h3>
+                    <div class="ready-clips-list" id="readyClipsList">
+                        <div class="empty-state">
+                            <span class="material-icons-round">pending_actions</span>
+                            <p>Paylaşıma hazır klip yok</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card platform-card">
+                    <h3><span class="material-icons-round">share</span> Platform Seçimi</h3>
+                    
+                    <div class="platform-toggles">
+                        <label class="platform-toggle">
+                            <input type="checkbox" id="uploadYT" checked>
+                            <div class="platform-toggle-visual youtube">
+                                <span class="material-icons-round">smart_display</span>
+                                <span>YouTube Shorts</span>
+                                <span class="platform-status-text" id="ytStatusText">Bağlantı yok</span>
+                            </div>
+                        </label>
+                        <label class="platform-toggle">
+                            <input type="checkbox" id="uploadTT" checked>
+                            <div class="platform-toggle-visual tiktok">
+                                <span class="material-icons-round">music_video</span>
+                                <span>TikTok</span>
+                                <span class="platform-status-text" id="ttStatusText">Bağlantı yok</span>
+                            </div>
+                        </label>
+                        <label class="platform-toggle">
+                            <input type="checkbox" id="uploadIG" checked>
+                            <div class="platform-toggle-visual instagram">
+                                <span class="material-icons-round">photo_camera</span>
+                                <span>Instagram Reels</span>
+                                <span class="platform-status-text" id="igStatusText">Bağlantı yok</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <button class="btn btn-primary btn-large" id="uploadBtn" disabled>
+                        <span class="material-icons-round">rocket_launch</span>
+                        Seçili Klipleri Paylaş
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section class="section" id="section-settings">
+            <div class="section-header">
+                <div>
+                    <h2>Ayarlar</h2>
+                    <p class="section-subtitle">Kanal ve platform yapılandırması</p>
+                </div>
+            </div>
+
+            <div class="settings-grid">
+                <div class="card">
+                    <h3><span class="material-icons-round">link</span> Platform Bağlantıları</h3>
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <strong>YouTube</strong>
+                            <p>Google OAuth2 ile bağlan</p>
+                        </div>
+                        <button class="btn btn-outline" id="connectYT">Bağlan</button>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <strong>TikTok</strong>
+                            <p>TikTok Developer hesabı gerekli</p>
+                        </div>
+                        <button class="btn btn-outline" id="connectTT">Bağlan</button>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <strong>Instagram</strong>
+                            <p>Meta Business Suite gerekli</p>
+                        </div>
+                        <button class="btn btn-outline" id="connectIG">Bağlan</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3><span class="material-icons-round">brush</span> İşleme Ayarları</h3>
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <strong>Whisper Model</strong>
+                            <p>Altyazı kalitesi vs hız</p>
+                        </div>
+                        <select class="input" id="whisperModel">
+                            <option value="tiny">Tiny (hızlı, düşük kalite)</option>
+                            <option value="base" selected>Base (dengeli)</option>
+                            <option value="small">Small (iyi kalite)</option>
+                            <option value="medium">Medium (yüksek kalite)</option>
+                            <option value="large">Large (en iyi, yavaş)</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <strong>Varsayılan Crop</strong>
+                            <p>Dikey video dönüşüm modu</p>
+                        </div>
+                        <select class="input" id="defaultCrop">
+                            <option value="blur" selected>Bulanık Arka Plan</option>
+                            <option value="crop">Ortadan Kes</option>
+                            <option value="fit">Sığdır</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3><span class="material-icons-round">info</span> Sistem Bilgisi</h3>
+                    <div class="sys-info">
+                        <div class="sys-row"><span>FFmpeg</span><span id="ffmpegStatus">Kontrol ediliyor...</span></div>
+                        <div class="sys-row"><span>Whisper</span><span id="whisperStatus">Kontrol ediliyor...</span></div>
+                        <div class="sys-row"><span>Disk Kullanımı</span><span id="diskUsage">—</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Video Preview Modal - TikTok Style -->
+    <div class="modal-overlay hidden" id="previewModal">
+        <div class="modal-phone-frame">
+            <button class="modal-close" id="closeModal">
+                <span class="material-icons-round">close</span>
+            </button>
+            <div class="modal-phone-notch"></div>
+            <div class="modal-phone-screen">
+                <video controls id="previewVideo" class="modal-preview-video"></video>
+            </div>
+            <div class="modal-phone-home-bar"></div>
+        </div>
+        <div class="modal-side-info" id="modalInfo"></div>
+    </div>
+
+    <script src="/frontend/app.js?v=4"></script>
+</body>
+</html>

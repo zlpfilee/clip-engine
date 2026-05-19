@@ -1,0 +1,44 @@
+{
+  "channels": {
+    "anime": {
+      "name": "Anime Kanalı",
+      "watermark": "watermarks/anime_logo.png",
+      "default_hashtags": ["#anime", "#animeedit", "#animeclip", "#weeb", "#otaku"],
+      "platforms": {
+        "youtube": { "enabled": false, "channel_id": "" },
+        "tiktok": { "enabled": false, "account": "" },
+        "instagram": { "enabled": false, "account": "" }
+      }
+    },
+    "film": {
+      "name": "Film Kanalı",
+      "watermark": "watermarks/film_logo.png",
+      "default_hashtags": ["#film", "#movie", "#filmedit", "#movieclip", "#cinema"],
+      "platforms": {
+        "youtube": { "enabled": false, "channel_id": "" },
+        "tiktok": { "enabled": false, "account": "" },
+        "instagram": { "enabled": false, "account": "" }
+      }
+    },
+    "dizi": {
+      "name": "Dizi Kanalı",
+      "watermark": "watermarks/dizi_logo.png",
+      "default_hashtags": ["#dizi", "#tvseries", "#diziedit", "#tvshow", "#series"],
+      "platforms": {
+        "youtube": { "enabled": false, "channel_id": "" },
+        "tiktok": { "enabled": false, "account": "" },
+        "instagram": { "enabled": false, "account": "" }
+      }
+    }
+  },
+  "media_dir": "media",
+  "whisper_model": "base",
+  "default_subtitle_style": {
+    "font": "Arial",
+    "fontsize": 24,
+    "primary_color": "&H00FFFFFF",
+    "outline_color": "&H00000000",
+    "outline_width": 2,
+    "position": "bottom"
+  }
+}

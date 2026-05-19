@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+*.egg-info/
+
+# Media files (user content)
+media/sources/
+media/clips/
+media/exports/
+media/preview_temp/
+media/watermarks/
+media/assets/
+media/sources/.thumbnails/
+
+# Data
+data/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Test files
+test*.txt
+test*.mp4
+test*.py
+
+# Scratch
+scratch/
+
+# Build & Dist & Spec (PyInstaller)
+build/
+dist/
+ClipEngine.exe
+launcher_config.json
