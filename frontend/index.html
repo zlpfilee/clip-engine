@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="tr">
+<!DOCTYPE html>
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <link rel="stylesheet" href="/frontend/style.css?v=1.0.24">
+    <link rel="stylesheet" href="/frontend/style.css?v=1.0.25">
 </head>
 <body>
     <!-- Sidebar -->
@@ -466,8 +468,6 @@
                                     </div>
                                     
                                     <div class="form-group" style="margin-top: 10px;">
-                                    <div class="form-group" style="margin-top: 10px;">
-                                        <label>Arkaplan Rengi</label>
                                         <label class="checkbox-label" style="margin-top: 5px;">
                                             <input type="checkbox" id="splitBlackBg">
                                             <span class="checkmark"></span> Bulanık yerine siyah arkaplan kullan
@@ -510,6 +510,7 @@
                                 </div>
                             </div>
 
+                            <div class="form-group">
                                 <label for="clipTitle">Başlık</label>
                                 <input type="text" id="clipTitle" placeholder="Klibin adı..." class="input">
                             </div>
@@ -730,8 +731,6 @@
                     <h3><span class="material-icons-round">brush</span> İşleme Ayarları</h3>
                     <div class="settings-item">
                         <div class="settings-item-info">
-                    <div class="settings-item">
-                        <div class="settings-item-info">
                             <strong>Varsayılan Crop</strong>
                             <p>Dikey video dönüşüm modu</p>
                         </div>
@@ -769,9 +768,10 @@
             </div>
             <div class="modal-phone-home-bar"></div>
         </div>
-        <div class="modal-side-info" id="modalInfo">    </div>
+        <div class="modal-side-info" id="modalInfo"></div>
+    </div>
 
     <!-- Scripts -->
-    <script src="/frontend/app.js?v=1.0.24"></script>
+    <script src="/frontend/app.js?v=1.0.25"></script>
 </body>
 </html>

@@ -706,7 +706,7 @@ window.nextWizardStep = function(step) {
     const layoutContainer = document.querySelector('.create-layout');
     if (layoutContainer) {
         layoutContainer.classList.toggle('has-middle-col', step === 4);
-        layoutContainer.classList.toggle('single-col', step === 2 || step === 1);
+        layoutContainer.classList.toggle('single-col', step === 1 || step === 2 || step === 3);
     }
     
     // Update Panels

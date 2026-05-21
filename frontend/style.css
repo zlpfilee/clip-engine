@@ -757,7 +757,20 @@ select.input { cursor: pointer; }
 }
 
 .create-layout.single-col {
-  grid-template-columns: minmax(0, 1fr); /* 1 column for Step 1, 2 */
+  grid-template-columns: minmax(0, 1fr); /* 1 column for Step 1, 2, 3 */
+}
+
+/* Floating phone for Step 3 */
+.create-layout.single-col .create-phone-col {
+  position: fixed;
+  bottom: 30px;
+  right: 40px;
+  z-index: 100;
+  transform: scale(0.85);
+  transform-origin: bottom right;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+  border-radius: 40px;
+  background: transparent;
 }
 
 .create-settings-col {
