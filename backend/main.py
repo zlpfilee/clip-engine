@@ -652,6 +652,7 @@ class PreviewLayoutRequest(BaseModel):
 
 @app.post("/api/preview/trim")
 def preview_trim(req: PreviewTrimRequest):
+    slog(f"[API] /api/preview/trim istegi alindi: {req.source_filename} ({req.start_time} - {req.end_time})")
     temp_dir = MEDIA_DIR / "preview_temp"
     os.makedirs(temp_dir, exist_ok=True)
     out_id = uuid.uuid4().hex[:8]
@@ -660,13 +661,16 @@ def preview_trim(req: PreviewTrimRequest):
     source_path = str(MEDIA_DIR / "sources" / req.source_filename)
     
     if not os.path.exists(source_path):
+        slog(f"[API] HATA: Kaynak bulunamadi ({source_path})")
         raise HTTPException(404, "Kaynak bulunamadı")
         
     try:
-        from video_processor import cut_clip
+        slog(f"[API] cut_clip cagrilacak...")
         cut_clip(source_path, out_path, req.start_time, req.end_time)
+        slog(f"[API] cut_clip basariyla dondu.")
         return {"filename": out_name, "url": f"/media/preview_temp/{out_name}"}
     except Exception as e:
+        slog(f"[API] HATA (preview_trim): {str(e)}")
         raise HTTPException(500, str(e))
 
 class PreviewCameraTrimRequest(BaseModel):
