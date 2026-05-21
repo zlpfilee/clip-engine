@@ -352,7 +352,15 @@ document.getElementById('processBtn')?.addEventListener('click', async () => {
 
           if (!res.ok) {
               const err = await res.json();
-              throw new Error(err.detail || 'İşleme hatası');
+              let errMsg = 'İşleme hatası';
+              if (err.detail) {
+                  if (Array.isArray(err.detail)) {
+                      errMsg = err.detail.map(d => `${d.loc.join('.')}: ${d.msg}`).join(', ');
+                  } else {
+                      errMsg = err.detail;
+                  }
+              }
+              throw new Error(errMsg);
           }
 
           const { job_id } = await res.json();
@@ -909,7 +917,15 @@ document.getElementById('btnAddClipToList')?.addEventListener('click', async () 
         
         if (!res.ok) {
             const errData = await res.json();
-            throw new Error(errData.detail || 'Kesim başarısız.');
+            let errMsg = 'Kesim başarısız.';
+            if (errData.detail) {
+                if (Array.isArray(errData.detail)) {
+                    errMsg = errData.detail.map(d => `${d.loc.join('.')}: ${d.msg}`).join(', ');
+                } else {
+                    errMsg = errData.detail;
+                }
+            }
+            throw new Error(errMsg);
         }
         
         const data = await res.json();

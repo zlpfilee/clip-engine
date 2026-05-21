@@ -187,8 +187,8 @@ class SplitSettings(BaseModel):
 
 class ClipRequest(BaseModel):
     source_filename: str
-    start_time: str
-    end_time: str
+    start_time: float
+    end_time: float
     channel: str  # anime, film, dizi
     title: str
     description: Optional[str] = ""
@@ -642,8 +642,8 @@ def _run_pipeline_with_progress(job_id: str, req_dict: dict, config: dict):
 
 class PreviewTrimRequest(BaseModel):
     source_filename: str
-    start_time: str
-    end_time: str
+    start_time: float
+    end_time: float
 
 class PreviewLayoutRequest(BaseModel):
     trimmed_filename: str
