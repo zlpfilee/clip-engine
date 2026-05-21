@@ -605,6 +605,10 @@ document.getElementById('previewModal').addEventListener('click', (e) => {
   if (e.target === e.currentTarget) {
     const video = document.getElementById('previewVideo');
     video.pause();
+    if (video.src) {
+        video.removeAttribute('src');
+        video.load();
+    }
     e.currentTarget.classList.add('hidden');
     e.currentTarget.classList.remove('source-mode');
   }
@@ -783,6 +787,10 @@ function showPhonePreview(videoUrl) {
     const phoneVideo = document.getElementById('phonePreviewVideo');
     const phonePlaceholder = document.getElementById('previewVideoContent');
     if (phoneVideo) {
+        if (phoneVideo.src) {
+            phoneVideo.removeAttribute('src');
+            phoneVideo.load();
+        }
         phoneVideo.src = `${API}${videoUrl}`;
         phoneVideo.style.display = 'block';
         phoneVideo.load();
@@ -1115,6 +1123,11 @@ document.getElementById('btnNextFromLayout')?.addEventListener('click', () => {
 
     // ── Load video ──
     window.loadSourceVideo = function(filename) {
+        // Önceki bağlantıyı zorla kapat (tarayıcı bağlantı limitine takılmamak için)
+        if (video.src) {
+            video.removeAttribute('src');
+            video.load();
+        }
         const url = `${API}/api/sources/${encodeURIComponent(filename)}/stream`;
         video.src = url;
         video.load();
