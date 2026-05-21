@@ -864,11 +864,14 @@ document.getElementById('btnAddClipToList')?.addEventListener('click', async () 
         return;
     }
     
-    const startTime = document.getElementById('startTime').value;
-    const endTime = document.getElementById('endTime').value;
+    const startTimeStr = document.getElementById('startTime').value;
+    const endTimeStr = document.getElementById('endTime').value;
     const clipName = document.getElementById('activeClipName').value.trim() || `Klip ${state.nextClipId}`;
     
-    if (!startTime || !endTime) {
+    const startTimeSec = window.parseTime ? window.parseTime(startTimeStr) : null;
+    const endTimeSec = window.parseTime ? window.parseTime(endTimeStr) : null;
+    
+    if (startTimeSec === null || endTimeSec === null) {
         showToast('Başlangıç ve bitiş zamanını gir!', 'error');
         return;
     }
@@ -882,8 +885,8 @@ document.getElementById('btnAddClipToList')?.addEventListener('click', async () 
     const clip = {
         id: state.nextClipId++,
         name: clipName,
-        start_time: startTime,
-        end_time: endTime,
+        start_time: startTimeSec,
+        end_time: endTimeSec,
         trimmed_filename: null,
         camera_filename: null,
         layout_filename: null,
@@ -899,8 +902,8 @@ document.getElementById('btnAddClipToList')?.addEventListener('click', async () 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 source_filename: state.selectedSource,
-                start_time: startTime,
-                end_time: endTime
+                start_time: startTimeSec,
+                end_time: endTimeSec
             })
         });
         
@@ -1118,14 +1121,15 @@ document.getElementById('btnNextFromLayout')?.addEventListener('click', () => {
         const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60);
         return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
     }
-    function parseTime(str) {
+    window.parseTime = function(str) {
         if (!str) return null;
         const p = str.replace(',','.').split(':').map(Number);
         if (p.some(isNaN)) return null;
         if (p.length === 3) return p[0]*3600 + p[1]*60 + p[2];
         if (p.length === 2) return p[0]*60 + p[1];
         return p[0] || null;
-    }
+    };
+    const parseTime = window.parseTime;
 
     // ── Load video ──
     window.loadSourceVideo = function(filename) {

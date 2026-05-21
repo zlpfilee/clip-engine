@@ -174,16 +174,21 @@ def cut_clip(
     
     slog(f"[cut_clip] Kaynak: {source_path}, Baslangic: {start_time}, Bitis: {end_time}")
     
+    duration = float(end_time) - float(start_time)
+    
     cmd = [
         "ffmpeg", "-y",
         "-ss", str(start_time),
-        "-to", str(end_time),
+        "-t", str(duration),
         "-i", source_path,
+        "-map", "0:v",
+        "-map", "0:a?",
         "-c", "copy",
+        "-avoid_negative_ts", "1",
         output_path
     ]
     
-    _run_ffmpeg(cmd, timeout=60, label="cut_clip")
+    _run_ffmpeg(cmd, timeout=90, label="cut_clip")
     
     return output_path
 
