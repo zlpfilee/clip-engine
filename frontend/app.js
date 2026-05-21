@@ -711,10 +711,7 @@ window.nextWizardStep = function(step) {
     });
     
     // Step 4'te 3 kolonlu yapı, Step 2 ve 1'de tek kolonlu (dev video) yapı
-    const layoutContainer = document.querySelector('.create-layout');
-    if (layoutContainer) {
-        layoutContainer.classList.toggle('has-middle-col', step === 4);
-    }
+    // (grid columns handled below)
     
     // Update Panels
     document.querySelectorAll('.wizard-panel').forEach(el => {
