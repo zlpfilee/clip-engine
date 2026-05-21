@@ -650,7 +650,20 @@ class ClipEngineLauncher:
         install_str = str(INSTALL_DIR).lower()
         
         try:
-            # WMIC ile ClipEngine dizinindeki python.exe ve ffmpeg.exe'leri bul ve oldur
+            # Önce 8899 portunu dinleyen süreci bul ve öldür (Kesin çözüm)
+            try:
+                res = subprocess.run(["netstat", "-ano"], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
+                for line in res.stdout.splitlines():
+                    if ":8899" in line and "LISTENING" in line:
+                        parts = line.strip().split()
+                        if len(parts) >= 5:
+                            pid = parts[-1]
+                            log(f"  Port 8899'u dinleyen eski islem olduruluyor: PID={pid}")
+                            subprocess.run(["taskkill", "/F", "/PID", pid], capture_output=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            except Exception as e:
+                log(f"  Port oldurme hatasi: {e}")
+
+            # Ardından yine de WMIC ile kalanları temizlemeyi dene
             for proc_name in ["python.exe", "ffmpeg.exe", "ffprobe.exe"]:
                 try:
                     result = subprocess.run(
