@@ -702,6 +702,13 @@ window.nextWizardStep = function(step) {
         el.classList.toggle('active', s === step);
     });
     
+    // Step 4'te 3 kolonlu yapı, Step 2 ve 1'de tek kolonlu (dev video) yapı
+    const layoutContainer = document.querySelector('.create-layout');
+    if (layoutContainer) {
+        layoutContainer.classList.toggle('has-middle-col', step === 4);
+        layoutContainer.classList.toggle('single-col', step === 2 || step === 1);
+    }
+    
     // Update Panels
     document.querySelectorAll('.wizard-panel').forEach(el => {
         el.style.display = 'none';
@@ -722,7 +729,7 @@ window.nextWizardStep = function(step) {
         if(phoneCol) phoneCol.style.display = 'none';
     } else if (step === 2) {
         if(layerControls) layerControls.style.display = 'none';
-        if(phoneCol) phoneCol.style.display = 'flex';
+        if(phoneCol) phoneCol.style.display = 'none';
         document.getElementById('draggableSubtitle').style.display = 'none';
         // Ensure source video is loaded in the interactive player
         if (state.selectedSource && window.loadSourceVideo) {

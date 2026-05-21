@@ -113,7 +113,7 @@ body {
   flex: 1;
   margin-left: var(--sidebar-width);
   padding: 20px;
-  max-width: 1800px;
+  max-width: 100%;
 }
 
 .section { display: none; animation: fadeIn 0.3s ease; }
@@ -754,6 +754,10 @@ select.input { cursor: pointer; }
 
 .create-layout.has-middle-col {
   grid-template-columns: minmax(0, 1fr) 300px 340px; /* 3 columns for Step 4 */
+}
+
+.create-layout.single-col {
+  grid-template-columns: minmax(0, 1fr); /* 1 column for Step 1, 2 */
 }
 
 .create-settings-col {
