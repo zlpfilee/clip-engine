@@ -1254,13 +1254,13 @@ document.getElementById('btnNextFromLayout')?.addEventListener('click', () => {
     });
 
     // Sync markers when inputs change manually
-    startInput.addEventListener('change', () => {
+    startInput.addEventListener('input', () => {
         const s = parseTime(startInput.value);
         if (s !== null && video.duration) {
             mStart = s; startMarker.style.left = (s/video.duration*100)+'%'; startMarker.style.display = 'block'; updateSelection();
         }
     });
-    endInput.addEventListener('change', () => {
+    endInput.addEventListener('input', () => {
         const s = parseTime(endInput.value);
         if (s !== null && video.duration) {
             mEnd = s; endMarker.style.left = (s/video.duration*100)+'%'; endMarker.style.display = 'block'; updateSelection();
