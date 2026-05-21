@@ -730,14 +730,21 @@ window.nextWizardStep = function(step) {
     // Show/Hide Right Side Columns based on step
     const layerControls = document.getElementById('layerControlsCol');
     const phoneCol = document.querySelector('.create-phone-col');
+    const previewCol = document.querySelector('.create-preview-col');
+    const layoutContainer = document.querySelector('.create-layout');
     
-    if (step === 1) {
-        if(layerControls) layerControls.style.display = 'none';
-        if(phoneCol) phoneCol.style.display = 'none';
-    } else if (step === 2) {
-        if(layerControls) layerControls.style.display = 'none';
-        if(phoneCol) phoneCol.style.display = 'flex';
-        document.getElementById('draggableSubtitle').style.display = 'none';
+    if (layoutContainer) {
+        if (step === 1) {
+            if(previewCol) previewCol.style.display = 'block';
+            if(layerControls) layerControls.style.display = 'none';
+            if(phoneCol) phoneCol.style.display = 'none';
+            layoutContainer.style.gridTemplateColumns = 'minmax(0, 1fr) 340px';
+        } else if (step === 2) {
+            if(previewCol) previewCol.style.display = 'block';
+            if(layerControls) layerControls.style.display = 'none';
+            if(phoneCol) phoneCol.style.display = 'flex';
+            layoutContainer.style.gridTemplateColumns = 'minmax(0, 1fr) 280px 340px';
+            document.getElementById('draggableSubtitle').style.display = 'none';
         // Ensure source video is loaded in the interactive player
         if (state.selectedSource && window.loadSourceVideo) {
             const vid = document.getElementById('sourcePreviewVideo');
@@ -749,18 +756,25 @@ window.nextWizardStep = function(step) {
         }
         // Klip listesini güncelle
         if (window.renderClipCards) window.renderClipCards();
-    } else if (step === 3) {
-        if(layerControls) layerControls.style.display = 'none';
-        if(phoneCol) phoneCol.style.display = 'flex';
-        document.getElementById('draggableSubtitle').style.display = 'none';
-        // Layout klip seçicisini doldur
-        if (window.populateLayoutClipSelect) window.populateLayoutClipSelect();
-    } else if (step === 4) {
-        if(layerControls) layerControls.style.display = 'flex';
-        if(phoneCol) phoneCol.style.display = 'flex';
-        // Enable Render button when reaching step 4
-        const processBtn = document.getElementById('processBtn');
-        if (processBtn) processBtn.disabled = false;
+        } else if (step === 3) {
+            if(previewCol) previewCol.style.display = 'block';
+            if(layerControls) layerControls.style.display = 'none';
+            if(phoneCol) phoneCol.style.display = 'flex';
+            layoutContainer.style.gridTemplateColumns = 'minmax(0, 1fr) 280px 340px';
+            document.getElementById('draggableSubtitle').style.display = 'none';
+            // Layout klip seçicisini doldur
+            if (window.populateLayoutClipSelect) window.populateLayoutClipSelect();
+        } else if (step === 4) {
+            if(previewCol) previewCol.style.display = 'none';
+            if(layerControls) layerControls.style.display = 'flex';
+            if(phoneCol) phoneCol.style.display = 'flex';
+            // settingsCol (child 1) gets 1fr, controlsCol (child 2) gets 300px, phoneCol (child 3) gets 280px
+            layoutContainer.style.gridTemplateColumns = 'minmax(0, 1fr) 300px 280px';
+            
+            // Enable Render button when reaching step 4
+            const processBtn = document.getElementById('processBtn');
+            if (processBtn) processBtn.disabled = false;
+        }
     }
     
     window.currentWizardStep = step;

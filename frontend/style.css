@@ -113,7 +113,7 @@ body {
   flex: 1;
   margin-left: var(--sidebar-width);
   padding: 32px;
-  max-width: 1400px;
+  max-width: 1700px;
 }
 
 .section { display: none; animation: fadeIn 0.3s ease; }
@@ -454,7 +454,7 @@ select.input { cursor: pointer; }
 
 /* Checkbox */
 .checkbox-group { margin-top: 4px; }
-.checkbox-label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; color: var(--text-secondary); }
+.form-group label.checkbox-label, .checkbox-label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; color: var(--text-secondary); text-transform: none; letter-spacing: normal; margin-bottom: 0; }
 .checkbox-label input { display: none; }
 .checkmark {
   width: 18px; height: 18px;
