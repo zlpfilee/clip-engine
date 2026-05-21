@@ -323,24 +323,24 @@ document.getElementById('processBtn')?.addEventListener('click', async () => {
       progressFill.style.width = '10%';
       progressText.textContent = `[${i+1}/${state.definedClips.length}] "${clip.name}" işleniyor...`;
 
-      const body = {
-          source_filename: state.selectedSource, // Asıl kaynak dosyası (backend metadata vb için)
-          start_time: clip.start_time,
-          end_time: clip.end_time,
-          channel: state.selectedChannel,
-          title: clip.name, // Klip ismini title yapıyoruz
-          description: document.getElementById('clipDescription')?.value || '',
-          hook_text: document.getElementById('hookText')?.value || null,
-          crop_mode: document.getElementById('cropMode').value,
-          margin_v: parseInt(document.getElementById('subtitleMarginV').value) || 80,
-          add_subtitles: document.getElementById('addSubtitles').checked,
-          subtitle_languages: checkedLangs.length ? checkedLangs : ["en"],
-          hashtags: hashtags,
-          text_layers: text_layers,
-          image_layers: image_layers,
-          preview_layout_filename: clip.layout_filename, // Backend doğrudan bu dosyayı alıp üstüne yazı/altyazı ekleyecek
-          split_settings: null // layout_filename verdiysek tekrar crop hesaplamasına gerek yok, backend bypass etmeli
-      };
+          const body = {
+              source_filename: state.selectedSource,
+              start_time: clip.start_time,
+              end_time: clip.end_time,
+              channel: state.selectedChannel,
+              title: clip.name,
+              description: document.getElementById('clipDescription')?.value || '',
+              hook_text: document.getElementById('hookText')?.value || null,
+              crop_mode: document.getElementById('cropMode').value,
+              margin_v: parseInt(document.getElementById('subtitleMarginV').value) || 80,
+              add_subtitles: false,
+              subtitle_languages: ["en"],
+              hashtags: hashtags,
+              text_layers: text_layers,
+              image_layers: image_layers,
+              preview_layout_filename: clip.layout_filename,
+              split_settings: null
+          };
 
       try {
           // Start job for this clip
@@ -646,25 +646,6 @@ async function checkSystemStatus() {
   try {
     const res = await fetch(`${API}/api/system/status`);
     const status = await res.json();
-
-    const ffmpegStatus = document.getElementById('ffmpegStatus');
-    const whisperStatus = document.getElementById('whisperStatus');
-
-    if (status.ffmpeg) {
-      ffmpegStatus.textContent = 'Bulundu ✓';
-      ffmpegStatus.style.color = 'var(--accent-green)';
-    } else {
-      ffmpegStatus.textContent = 'Bulunamadı ✗';
-      ffmpegStatus.style.color = 'var(--accent-red)';
-    }
-
-    if (status.whisper) {
-      whisperStatus.textContent = 'Yüklü ✓';
-      whisperStatus.style.color = 'var(--accent-green)';
-    } else {
-      whisperStatus.textContent = 'Eksik ✗';
-      whisperStatus.style.color = 'var(--accent-red)';
-    }
   } catch (err) {
     console.log('Sistem durumu kontrol edilemedi');
   }
@@ -759,9 +740,6 @@ window.nextWizardStep = function(step) {
     } else if (step === 4) {
         if(layerControls) layerControls.style.display = 'flex';
         if(phoneCol) phoneCol.style.display = 'flex';
-        if(document.getElementById('addSubtitles').checked) {
-            document.getElementById('draggableSubtitle').style.display = 'flex';
-        }
         // Enable Render button when reaching step 4
         const processBtn = document.getElementById('processBtn');
         if (processBtn) processBtn.disabled = false;
@@ -921,8 +899,6 @@ document.getElementById('btnAddClipToList')?.addEventListener('click', async () 
         clip.trimmed_filename = data.filename;
         clip.status = 'trimmed';
         
-        // Kamera kesimi artık Step 3'te (Düzen Modu) doğrudan crop_to_vertical tarafından işleniyor.
-        
         clip.status = 'trimmed';
         window.renderClipCards();
         
@@ -964,7 +940,7 @@ window.populateLayoutClipSelect = function() {
     
     select.innerHTML = '<option value="" disabled selected>Klip seçin...</option>';
     state.definedClips.filter(c => c.status === 'trimmed').forEach(clip => {
-        const layoutDone = clip.layout_filename ? ' ✓ Düzen uygulandı' : '';
+        const layoutDone = clip.layout_filename ? ' ✓' : '';
         const opt = document.createElement('option');
         opt.value = clip.id;
         opt.textContent = `${clip.name} (${clip.start_time} → ${clip.end_time})${layoutDone}`;
@@ -978,7 +954,7 @@ window.populateLayoutClipSelect = function() {
             const done = !!clip.layout_filename;
             return `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(255,255,255,0.03); border-radius:6px; border: 1px solid rgba(255,255,255,0.06);">
                 <span style="font-size:13px;">${clip.name}</span>
-                <span style="font-size:12px; color:${done ? 'var(--accent-green)' : 'var(--text-muted)'};">${done ? '✓ Hazır' : '⏳ Bekliyor'}</span>
+                <span style="font-size:12px; color:${done ? 'var(--accent-green)' : 'var(--text-muted)'};">${done ? '✓' : '⏳'}</span>
             </div>`;
         }).join('');
     }
