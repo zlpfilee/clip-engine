@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <link rel="stylesheet" href="/frontend/style.css?v=1.0.25">
+    <link rel="stylesheet" href="/frontend/style.css?v=1.0.26">
 </head>
 <body>
     <!-- Sidebar -->
@@ -367,10 +367,22 @@
                                 <div class="form-group">
                                     <label for="startTime">Başlangıç (SS:DD:SS)</label>
                                     <input type="text" id="startTime" placeholder="00:01:30" class="input">
+                                    <div style="display: flex; gap: 4px; margin-top: 4px;">
+                                        <button class="btn btn-sm" style="flex:1; padding:2px;" onclick="window.adjustTime('startTime', -1)">-1s</button>
+                                        <button class="btn btn-sm" style="flex:1; padding:2px;" onclick="window.adjustTime('startTime', -0.1)">-0.1s</button>
+                                        <button class="btn btn-sm" style="flex:1; padding:2px;" onclick="window.adjustTime('startTime', 0.1)">+0.1s</button>
+                                        <button class="btn btn-sm" style="flex:1; padding:2px;" onclick="window.adjustTime('startTime', 1)">+1s</button>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="endTime">Bitiş (SS:DD:SS)</label>
                                     <input type="text" id="endTime" placeholder="00:02:15" class="input">
+                                    <div style="display: flex; gap: 4px; margin-top: 4px;">
+                                        <button class="btn btn-sm" style="flex:1; padding:2px;" onclick="window.adjustTime('endTime', -1)">-1s</button>
+                                        <button class="btn btn-sm" style="flex:1; padding:2px;" onclick="window.adjustTime('endTime', -0.1)">-0.1s</button>
+                                        <button class="btn btn-sm" style="flex:1; padding:2px;" onclick="window.adjustTime('endTime', 0.1)">+0.1s</button>
+                                        <button class="btn btn-sm" style="flex:1; padding:2px;" onclick="window.adjustTime('endTime', 1)">+1s</button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -772,6 +784,6 @@
     </div>
 
     <!-- Scripts -->
-    <script src="/frontend/app.js?v=1.0.25"></script>
+    <script src="/frontend/app.js?v=1.0.26"></script>
 </body>
 </html>

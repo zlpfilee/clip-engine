@@ -706,7 +706,6 @@ window.nextWizardStep = function(step) {
     const layoutContainer = document.querySelector('.create-layout');
     if (layoutContainer) {
         layoutContainer.classList.toggle('has-middle-col', step === 4);
-        layoutContainer.classList.toggle('single-col', step === 1 || step === 2 || step === 3);
     }
     
     // Update Panels
@@ -729,7 +728,7 @@ window.nextWizardStep = function(step) {
         if(phoneCol) phoneCol.style.display = 'none';
     } else if (step === 2) {
         if(layerControls) layerControls.style.display = 'none';
-        if(phoneCol) phoneCol.style.display = 'none';
+        if(phoneCol) phoneCol.style.display = 'flex';
         document.getElementById('draggableSubtitle').style.display = 'none';
         // Ensure source video is loaded in the interactive player
         if (state.selectedSource && window.loadSourceVideo) {
@@ -2040,3 +2039,23 @@ document.getElementById('btnNextFromLayout')?.addEventListener('click', () => {
     }, 100);
   });
 })();
+window.adjustTime = function(inputId, secondsToAdd) {
+    const input = document.getElementById(inputId);
+    if (!input || !input.value) return;
+    let currentSeconds = null;
+    const p = input.value.replace(',', '.').split(':').map(Number);
+    if (p.some(isNaN)) return;
+    if (p.length === 3) currentSeconds = p[0] * 3600 + p[1] * 60 + p[2];
+    else if (p.length === 2) currentSeconds = p[0] * 60 + p[1];
+    else currentSeconds = p[0];
+    if (currentSeconds === null) return;
+    let newSeconds = Math.max(0, currentSeconds + secondsToAdd);
+    const h = Math.floor(newSeconds / 3600);
+    const m = Math.floor((newSeconds % 3600) / 60);
+    const sec = Math.floor(newSeconds % 60);
+    const ms = (newSeconds % 1).toFixed(1).substring(2);
+    let formatted = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    if (ms !== '0') formatted += `.${ms}`;
+    input.value = formatted;
+    input.dispatchEvent(new Event('input'));
+};
